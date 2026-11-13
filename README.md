@@ -8,6 +8,13 @@
 
 パスワードは自分の PC の中で暗号化。Google Drive に置かれるのは「誰にも読めない暗号文」だけ。
 
+### ⬇️ すぐに使う
+
+[![Windows 版をダウンロード](https://img.shields.io/badge/Windows_版をダウンロード-.exe-0078D4?style=for-the-badge)](https://github.com/toramon-shield/2password/releases/latest/download/2password-windows-x64-setup.exe)
+[![macOS 版をダウンロード](https://img.shields.io/badge/macOS_版をダウンロード-.dmg-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/toramon-shield/2password/releases/latest/download/2password-macos-universal.dmg)
+
+<sub>Windows 10 / 11（64bit）・ macOS（Apple シリコン / Intel 共通）｜ [インストール手順](docs/INSTALL.md) ・ [すべてのリリース](https://github.com/toramon-shield/2password/releases/latest)</sub>
+
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.90%2B-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
@@ -15,7 +22,7 @@
 [![Status](https://img.shields.io/badge/Status-学習用・未監査-yellow)](#-セキュリティ)
 [![Toramon Shield](https://img.shields.io/badge/Toramon_Shield-日本の個人情報を守る-8A2BE2)](#-toramon-shield-について)
 
-[特長](#-特長) ・ [しくみ](#-しくみ) ・ [クイックスタート](#-クイックスタート) ・ [コマンド一覧](#-コマンド一覧) ・ [ドキュメント](#-ドキュメント) ・ [FAQ](#-よくある質問)
+[ダウンロード](#-アプリ版を使う) ・ [特長](#-特長) ・ [しくみ](#-しくみ) ・ [クイックスタート](#-クイックスタート) ・ [コマンド一覧](#-コマンド一覧) ・ [ドキュメント](#-ドキュメント) ・ [FAQ](#-よくある質問)
 
 </div>
 
@@ -102,11 +109,20 @@ flowchart TB
 
 ## 📦 アプリ版を使う
 
-プログラミングをしない方は、Windows のインストーラー（`.exe`）または Mac のディスクイメージ（`.dmg`）を使います。
+プログラミングをしない方は、インストーラーをダウンロードしてダブルクリックするだけで使えます。
+
+| OS | ダウンロード | 対応環境 |
+|---|---|---|
+| 🪟 **Windows** | [2password-windows-x64-setup.exe](https://github.com/toramon-shield/2password/releases/latest/download/2password-windows-x64-setup.exe) | Windows 10 / 11（64bit） |
+| 🍎 **macOS** | [2password-macos-universal.dmg](https://github.com/toramon-shield/2password/releases/latest/download/2password-macos-universal.dmg) | Apple シリコン / Intel 共通 |
 
 👉 **[インストールと使い方（docs/INSTALL.md）](docs/INSTALL.md)**
 
-インストーラーは、[自分でビルド](#-デスクトップアプリをビルドする) できます。
+> [!NOTE]
+> 有料の電子署名をしていないため、初回起動時に Windows の SmartScreen や macOS の Gatekeeper が警告を出します。開き方は [docs/INSTALL.md](docs/INSTALL.md) にあります。
+> ダウンロードしたファイルが本物かどうかは、[リリースページ](https://github.com/toramon-shield/2password/releases/latest) の `SHA256SUMS.txt` で確かめられます。
+
+配布しているインストーラーは、このリポジトリのソースコードから GitHub Actions が自動でビルドしたものです。[自分でビルド](#-デスクトップアプリをビルドする) することもできます。
 
 ---
 
@@ -306,6 +322,8 @@ Mac を持っていなくても、GitHub 上で `.dmg` を作れます。
 
 1. GitHub の **Actions** タブ → **build-installers** → **Run workflow**（または `v0.1.0` のようなタグを push）
 2. 完了後、実行結果ページの **Artifacts** からインストーラーをダウンロード
+
+`v0.1.0` のようなタグを push した場合は、インストーラーを添付した **Release** も自動で作られます。
 
 Google Drive 版を作る場合は、リポジトリの **Settings → Secrets and variables → Actions** に `OAUTH_CLIENT_JSON`（OAuth クライアント JSON の中身）を登録してください。値はリポジトリには保存されず、ビルド時にだけ使われます。
 
@@ -516,6 +534,6 @@ Copyright 2026 AIGYM株式会社（AIGYM Inc.）
 
 **Toramon Shield** — 日本の個人情報を守る
 
-Made with 🦀 by [AIGYM株式会社](https://github.com/toramon-shield)
+Made with 🦀 by [AIGYM株式会社](https://toramon.ai)
 
 </div>

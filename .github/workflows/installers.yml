@@ -3,6 +3,7 @@
 # 使い方：GitHub の Actions タブ → build-installers → Run workflow
 #        （または v0.1.0 のようなタグを push）
 # 出来上がったインストーラーは、実行結果ページの「Artifacts」からダウンロードできる。
+# タグを push した場合は、インストーラーを添付した Release も自動で作る。
 #
 # Google Drive 版を配布する場合は、リポジトリの Settings → Secrets and variables → Actions に
 # OAUTH_CLIENT_JSON（Google Cloud の「デスクトップ アプリ」の JSON の中身）を登録すると、アプリに埋め込まれる。
@@ -68,3 +69,39 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.path }}
           if-no-files-found: error
+
+  # タグを push したときだけ、インストーラーを添付した Release を作る。
+  # ファイル名を固定しているので、README の releases/latest/download/... のリンクが常に最新版を指す。
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Release を作る
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mv dist/2password-windows-installer/*.exe 2password-windows-x64-setup.exe
+          mv dist/2password-macos-dmg/*.dmg 2password-macos-universal.dmg
+          sha256sum 2password-windows-x64-setup.exe 2password-macos-universal.dmg > SHA256SUMS.txt
+          cat > notes.md <<NOTES
+          ## ダウンロード
+
+          | OS | ファイル |
+          |---|---|
+          | Windows 10 / 11（64bit） | \`2password-windows-x64-setup.exe\` |
+          | macOS（Apple シリコン / Intel 共通） | \`2password-macos-universal.dmg\` |
+
+          インストール手順は [docs/INSTALL.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/docs/INSTALL.md) を参照してください。
+
+          - 有料の電子署名をしていないため、初回起動時に OS が警告を出します。
+          - 2password は学習・検証用のプロジェクトで、第三者によるセキュリティ監査を受けていません。
+          - \`SHA256SUMS.txt\` で、ダウンロードしたファイルのハッシュ値を確かめられます。
+          NOTES
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "2password $GITHUB_REF_NAME" --notes-file notes.md --verify-tag 2password-windows-x64-setup.exe 2password-macos-universal.dmg SHA256SUMS.txt
