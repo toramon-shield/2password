@@ -174,7 +174,9 @@ async function lockNow(reason) {
   $$('form').forEach(f => f.reset());
   $$('input[type=text][name=password]').forEach(i => (i.type = 'password'));
   info = await invoke('app_info');
-  $('#lock-where').textContent = reason === 'auto' ? '5分間操作がなかったため、自動でロックしました' : '';
+  $('#lock-where').textContent = reason === 'auto' ? '5分間操作がなかったため、自動でロックしました'
+    : reason === 'browser' ? 'ブラウザの拡張機能から短い時間に要求が続いたため、ロックしました。心当たりがなければ、拡張機能を確認してください'
+    : '';
   show('lock');
 }
 $('#b-lock').addEventListener('click', () => lockNow('manual'));
@@ -408,7 +410,47 @@ async function refreshBrowser() {
     : '未接続です（アプリを更新・移動したあとは、もう一度接続してください）';
   $('#b-browser-uninstall').hidden = !b.installed;
   $('#br-ids').textContent = '登録済みの ID: ' + [b.dev_extension_id + '（開発版）', ...b.extra_extension_ids].join('、');
+  $('#br-approved').textContent = `確認済み: ${b.approved_sites} 件`;
+  const events = { filled: '入力', asked: '確認を表示', allowed: '許可', denied: '拒否', blocked: '連続要求のためロック', saved: '保存', updated: '更新' };
+  const log = await invoke('browser_log');
+  $('#br-log').replaceChildren(...(log.length ? log : [null]).map(e => {
+    const li = document.createElement('li');
+    li.textContent = e
+      ? `${new Date(e.at * 1000).toLocaleTimeString()}　${events[e.event] || e.event}　${e.host}${e.title ? '　' + e.title : ''}`
+      : 'まだ要求はありません';
+    return li;
+  }));
 }
+$('#b-browser-forget').addEventListener('click', async () => {
+  if (!await confirmBox('確認済みのサイトを取り消しますか？', '次にブラウザで項目を使うとき、サイトごとにもう一度確認します。', '取り消す')) return;
+  try { await invoke('browser_forget_approvals'); toast('取り消しました'); } catch (e) { toast(String(e), true); }
+  refreshBrowser();
+});
+
+// 拡張機能が、項目をそのサイトで初めて使おうとしたときの確認
+let approving = null; // 画面に出している確認
+async function askApproval() {
+  const d = $('#d-approve');
+  const p = await invoke('browser_pending');
+  if (!p || $('#v-main').hidden) return;
+  approving = p;
+  $('#ap-host').textContent = p.host;
+  $('#ap-title').textContent = p.title;
+  $('#ap-user').textContent = p.username || '（なし）';
+  if (!d.open) d.showModal();
+}
+$('#d-approve').addEventListener('close', async e => {
+  const allow = e.target.returnValue === 'yes';
+  e.target.returnValue = '';
+  const p = approving;
+  approving = null;
+  if (!p) return;
+  try {
+    await invoke('browser_approve', { allow, itemId: p.item_id, origin: p.origin });
+    if (allow) toast('許可しました。ブラウザでもう一度項目を選んでください');
+  } catch (err) { if (allow) toast(String(err), true); }
+});
+listen('browser-approval', askApproval);
 $('#b-browser-install').addEventListener('click', async () => {
   try {
     const browsers = await invoke('browser_install', { extensionId: $('#br-extid').value.trim() || null });

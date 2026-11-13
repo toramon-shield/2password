@@ -133,6 +133,7 @@
       </span>
     </label>
     <label>URL（1行に1つ） <textarea name="urls" rows="2"></textarea></label>
+    <p class="muted small">ブラウザの自動入力は、ここに書いたホスト名と同じページでだけ働きます。サブドメインでも使うときは <code>*.example.com</code> のように書きます。</p>
     <label>メモ <textarea name="notes" rows="3"></textarea></label>
     <p class="error" role="alert"></p>
     <div class="actions">
@@ -150,6 +151,24 @@
     <div class="actions">
       <button value="no" class="secondary">キャンセル</button>
       <button value="yes" class="danger" id="confirm-yes">実行</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- ===== ブラウザ拡張からの初回の確認 ===== -->
+<dialog id="d-approve">
+  <form method="dialog">
+    <h2>このサイトでパスワードを使いますか？</h2>
+    <p class="muted small">ブラウザの拡張機能が、次のサイトへの入力を求めています。このサイトで使うのは初めてです。</p>
+    <p class="approve-host" id="ap-host"></p>
+    <dl class="kv">
+      <dt>項目</dt><dd id="ap-title"></dd>
+      <dt>ユーザー名</dt><dd id="ap-user"></dd>
+    </dl>
+    <p class="small">いまブラウザでこのサイトを開いて、ログインしようとしていますか？ 心当たりがなければ「拒否」を押してください。</p>
+    <div class="actions">
+      <button value="no" class="secondary">拒否</button>
+      <button value="yes" class="primary">許可する</button>
     </div>
   </form>
 </dialog>
@@ -191,6 +210,15 @@
       <summary>拡張機能の ID を指定する（自分でビルドした拡張を使う場合）</summary>
       <input id="br-extid" placeholder="chrome://extensions に表示される 32 文字の ID" spellcheck="false" maxlength="32">
       <p class="muted small" id="br-ids"></p>
+    </details>
+    <p class="muted small">項目をそのサイトで初めて使うときは、このアプリの画面で確認します。短い時間に要求が続いた場合は、自動でロックします。暗号化されていないページ（http）には入力しません。</p>
+    <details class="small">
+      <summary>拡張機能からの要求の履歴（ロックすると消えます）</summary>
+      <ul class="log" id="br-log"></ul>
+      <div class="row wrap">
+        <button class="secondary" id="b-browser-forget">確認済みのサイトを取り消す</button>
+        <span class="muted small" id="br-approved"></span>
+      </div>
     </details>
 
     <h3>他のツールから取り込む</h3>

@@ -9,16 +9,21 @@
 //!
 //! - 保管庫の鍵とアカウントパスワードは、拡張にもブラウザにも渡さない
 //! - パスワードを返すのは、ページのオリジンが項目の URL に一致するときだけ（`links::url_matches_origin`）
+//! - 項目をそのサイトで初めて使うときは、アプリの画面で利用者に確認する（`Guard`）
+//! - 短い時間に要求が続いたら保管庫をロックする。http のページには返さない
 //! - ブラウザは、マニフェストの `allowed_origins` に書いた拡張だけにホストの起動を許す
 //! - アプリとの接続には、設定フォルダの `bridge.json` にある合言葉が要る（同じ利用者のプロセスだけが読める）
-use crate::links::{page_origin, url_matches_origin};
+use crate::links::{
+    Relation, has_idn_label, insecure_origin, item_host, page_origin, relation, url_matches_origin,
+};
 use crate::{ItemInput, R, Session, config};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddr, TcpListener, TcpStream};
 use std::path::PathBuf;
-use std::time::Duration;
+use std::collections::{HashSet, VecDeque};
+use std::time::{Duration, Instant};
 use vault_core::Item;
 use zeroize::Zeroizing;
 
@@ -118,6 +123,10 @@ pub struct Outcome {
     pub changed: bool,
     /// アプリの画面を前面に出す
     pub focus: bool,
+    /// 利用者の確認が要る（アプリの画面に確認を出す）
+    pub approval: bool,
+    /// 保管庫をロックする（要求が続いたとき）
+    pub lock: bool,
 }
 
 impl Outcome {
@@ -129,6 +138,8 @@ impl Outcome {
             activity: false,
             changed: false,
             focus: false,
+            approval: false,
+            lock: false,
         }
     }
     fn err(code: &str, message: &str) -> Self {
@@ -137,7 +148,190 @@ impl Outcome {
             activity: false,
             changed: false,
             focus: false,
+            approval: false,
+            lock: false,
         }
+    }
+}
+
+// ---------------- 拡張を信用しきらないための見張り ----------------
+//
+// 拡張機能が乗っ取られると（配布元の汚染など）、好きなサイト名を名乗ってパスワードを要求できる。
+// そこで、アプリ側で次の 3 つを行う。
+//   1. 項目をそのサイトで初めて使うときは、アプリの画面で利用者に確認する
+//   2. 短い時間にパスワードの要求が続いたら、保管庫をロックする
+//   3. 要求の履歴を残し、利用者が見られるようにする（メモリの中だけ。ディスクには書かない）
+
+/// 確認の待ち時間。過ぎたら無効にする
+const APPROVAL_TTL: Duration = Duration::from_secs(120);
+const FILL_WINDOW: Duration = Duration::from_secs(60);
+/// `FILL_WINDOW` の間に受け付けるパスワード要求の数。超えたらロックする
+pub const MAX_FILLS_PER_WINDOW: usize = 8;
+const LOG_MAX: usize = 50;
+
+/// 利用者の確認を待っている要求
+#[derive(Serialize, Clone)]
+pub struct PendingApproval {
+    pub item_id: String,
+    pub title: String,
+    pub username: String,
+    /// 入力先のページ（`https://example.com`）
+    pub origin: String,
+    pub host: String,
+    #[serde(skip)]
+    at: Option<Instant>,
+}
+
+/// 拡張からの要求の履歴（パスワードは含めない）
+#[derive(Serialize, Clone)]
+pub struct LogEntry {
+    /// UNIX 時刻（秒）
+    pub at: u64,
+    pub host: String,
+    pub title: String,
+    /// filled（入力した）/ asked（確認を求めた）/ allowed / denied / blocked（連続要求でロック）/ saved / updated
+    pub event: &'static str,
+}
+
+pub struct Guard {
+    /// 許可済みの組み合わせの保存先。None ならメモリの中だけ
+    path: Option<PathBuf>,
+    /// SHA-256(項目 ID + オリジン)。ファイルを読まれても、どのサイトを使っているかは分からない
+    approved: HashSet<String>,
+    pending: Option<PendingApproval>,
+    fills: VecDeque<Instant>,
+    log: VecDeque<LogEntry>,
+}
+
+fn approval_key(item_id: &str, origin: &reqwest::Url) -> String {
+    use sha2::{Digest, Sha256};
+    let mut h = Sha256::new();
+    h.update(item_id.as_bytes());
+    h.update(b"\n");
+    h.update(origin.origin().ascii_serialization().as_bytes());
+    hex(&h.finalize())
+}
+
+impl Guard {
+    /// この端末の許可済みの一覧を読み込む
+    pub fn load() -> Self {
+        let path = config::home().join("approved-sites.json");
+        let approved = std::fs::read(&path)
+            .ok()
+            .and_then(|b| serde_json::from_slice::<Vec<String>>(&b).ok())
+            .unwrap_or_default()
+            .into_iter()
+            .collect();
+        Self {
+            path: Some(path),
+            approved,
+            ..Self::in_memory()
+        }
+    }
+
+    pub fn in_memory() -> Self {
+        Self {
+            path: None,
+            approved: HashSet::new(),
+            pending: None,
+            fills: VecDeque::new(),
+            log: VecDeque::new(),
+        }
+    }
+
+    fn persist(&self) -> R<()> {
+        let Some(path) = &self.path else {
+            return Ok(());
+        };
+        let mut list: Vec<&String> = self.approved.iter().collect();
+        list.sort();
+        write_private(path, &serde_json::to_vec(&list)?)
+    }
+
+    fn is_approved(&self, item_id: &str, origin: &reqwest::Url) -> bool {
+        self.approved.contains(&approval_key(item_id, origin))
+    }
+
+    fn approve(&mut self, item_id: &str, origin: &reqwest::Url) {
+        if self.approved.insert(approval_key(item_id, origin)) {
+            // 書けなくても、このプロセスの間は有効
+            let _ = self.persist();
+        }
+    }
+
+    fn record(&mut self, event: &'static str, host: &str, title: &str) {
+        let at = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        if self.log.len() >= LOG_MAX {
+            self.log.pop_front();
+        }
+        self.log.push_back(LogEntry {
+            at,
+            host: host.to_string(),
+            title: title.to_string(),
+            event,
+        });
+    }
+
+    /// パスワードの要求を 1 回数える。多すぎたら true
+    fn too_many_fills(&mut self) -> bool {
+        let now = Instant::now();
+        while self
+            .fills
+            .front()
+            .is_some_and(|t| now.duration_since(*t) > FILL_WINDOW)
+        {
+            self.fills.pop_front();
+        }
+        self.fills.push_back(now);
+        self.fills.len() > MAX_FILLS_PER_WINDOW
+    }
+
+    /// 利用者の確認を待っている要求（期限が切れていたら消す）
+    pub fn pending(&mut self) -> Option<PendingApproval> {
+        if self
+            .pending
+            .as_ref()
+            .is_some_and(|p| p.at.is_some_and(|t| t.elapsed() > APPROVAL_TTL))
+        {
+            self.pending = None;
+        }
+        self.pending.clone()
+    }
+
+    /// 利用者の答えを反映する。許可なら、次の要求からパスワードを返す
+    pub fn resolve(&mut self, allow: bool) -> Option<PendingApproval> {
+        let p = self.pending()?;
+        self.pending = None;
+        if allow && let Some(origin) = page_origin(&p.origin) {
+            self.approve(&p.item_id, &origin);
+        }
+        self.record(if allow { "allowed" } else { "denied" }, &p.host, &p.title);
+        Some(p)
+    }
+
+    /// ロックしたときに呼ぶ。確認待ちと要求の数え直し
+    pub fn reset(&mut self) {
+        self.pending = None;
+        self.fills.clear();
+    }
+
+    /// 許可済みの組み合わせをすべて取り消す（次に使うとき、もう一度確認する）
+    pub fn forget_approvals(&mut self) -> R<()> {
+        self.approved.clear();
+        self.pending = None;
+        self.persist()
+    }
+
+    pub fn approved_count(&self) -> usize {
+        self.approved.len()
+    }
+
+    /// 新しいものから順に並べた履歴
+    pub fn log(&self) -> Vec<LogEntry> {
+        self.log.iter().rev().cloned().collect()
     }
 }
 
@@ -149,8 +343,42 @@ fn too_long(fields: &[&str]) -> bool {
     fields.iter().any(|f| f.chars().count() > MAX_FIELD)
 }
 
+fn display_host(origin: &reqwest::Url) -> String {
+    let host = origin.host_str().unwrap_or_default();
+    match origin.port() {
+        Some(p) => format!("{host}:{p}"),
+        None => host.to_string(),
+    }
+}
+
+/// 一致する項目がないページについて、保存済みの項目との関係を調べる。
+/// 似た名前の別サイト（偽サイトの疑い）を優先して 1 件だけ返す。
+fn related_site(s: &Session, origin: &reqwest::Url) -> Option<Value> {
+    let mut same_site = None;
+    for item in s.vault.items() {
+        for url in &item.urls {
+            // スキームやポートだけが違う場合も「同じサイトの別の入口」として知らせる
+            let rel = relation(url, origin).or_else(|| {
+                (item_host(url).as_deref() == origin.host_str().map(|h| h.strip_prefix("www.").unwrap_or(h)))
+                    .then_some(Relation::SameSite)
+            });
+            let Some(host) = item_host(url) else { continue };
+            match rel {
+                Some(Relation::Lookalike) => {
+                    return Some(json!({ "kind": "lookalike", "host": host, "title": item.title }));
+                }
+                Some(Relation::SameSite) if same_site.is_none() => {
+                    same_site = Some(json!({ "kind": "same_site", "host": host, "title": item.title }));
+                }
+                _ => {}
+            }
+        }
+    }
+    same_site
+}
+
 /// 拡張からの要求を処理する。`session` が None ならロック中。
-pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
+pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) -> Outcome {
     match &req {
         Request::Status => {
             return Outcome::ok(json!({
@@ -187,6 +415,14 @@ pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
     let Some(origin) = page_origin(origin_str) else {
         return Outcome::err("bad_origin", "このページでは使えません");
     };
+    // 暗号化されていないページでは、通信の途中でパスワードを読まれる
+    if insecure_origin(&origin) {
+        return Outcome::err(
+            "insecure",
+            "暗号化されていないページ（http）では使えません",
+        );
+    }
+    let host = display_host(&origin);
 
     match &req {
         Request::List { .. } => {
@@ -197,17 +433,57 @@ pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
                 .map(|i| json!({ "id": i.id, "title": i.title, "username": i.username }))
                 .collect();
             items.sort_by_key(|v| v["title"].as_str().unwrap_or_default().to_lowercase());
-            Outcome::ok(json!({ "items": items }))
-        }
-        Request::Fill { id, .. } => match s.get(id) {
-            Some(i) if matches(i, &origin) => {
-                let mut o = Outcome::ok(json!({ "username": i.username, "password": i.password }));
-                o.activity = true;
-                o
+            let mut out = json!({ "items": items, "idn": has_idn_label(&origin) });
+            if items_is_empty(&out)
+                && let Some(rel) = related_site(s, &origin)
+            {
+                out["related"] = rel;
             }
-            // 項目があっても、URL が一致しないページには返さない（偽サイト対策）
-            _ => Outcome::err("no_match", "このサイトに一致する項目がありません"),
-        },
+            Outcome::ok(out)
+        }
+        Request::Fill { id, .. } => {
+            if guard.too_many_fills() {
+                guard.record("blocked", &host, "");
+                guard.reset();
+                let mut o = Outcome::err(
+                    "rate_limited",
+                    "短い時間に要求が続いたため、2password をロックしました",
+                );
+                o.lock = true;
+                o.focus = true;
+                return o;
+            }
+            match s.get(id) {
+                Some(i) if matches(i, &origin) => {
+                    if !guard.is_approved(&i.id, &origin) {
+                        guard.pending = Some(PendingApproval {
+                            item_id: i.id.clone(),
+                            title: i.title.clone(),
+                            username: i.username.clone(),
+                            origin: origin.origin().ascii_serialization(),
+                            host: host.clone(),
+                            at: Some(Instant::now()),
+                        });
+                        guard.record("asked", &host, &i.title);
+                        let mut o = Outcome::err(
+                            "needs_approval",
+                            "このサイトで使うのは初めてです。2password アプリで許可してから、もう一度選んでください",
+                        );
+                        o.activity = true;
+                        o.focus = true;
+                        o.approval = true;
+                        return o;
+                    }
+                    guard.record("filled", &host, &i.title);
+                    let mut o =
+                        Outcome::ok(json!({ "username": i.username, "password": i.password }));
+                    o.activity = true;
+                    o
+                }
+                // 項目があっても、URL が一致しないページには返さない（偽サイト対策）
+                _ => Outcome::err("no_match", "このサイトに一致する項目がありません"),
+            }
+        }
         Request::Check {
             username, password, ..
         } => {
@@ -238,15 +514,15 @@ pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
             if password.is_empty() || too_long(&[title, username, password]) {
                 return Outcome::err("bad_request", "保存できない内容です");
             }
-            let host = origin.host_str().unwrap_or_default().to_string();
+            let bare = origin.host_str().unwrap_or_default().to_string();
             let title = if title.trim().is_empty() {
-                host.strip_prefix("www.").unwrap_or(&host).to_string()
+                bare.strip_prefix("www.").unwrap_or(&bare).to_string()
             } else {
                 title.trim().to_string()
             };
             let url = origin.origin().ascii_serialization();
             match s.add(ItemInput {
-                title,
+                title: title.clone(),
                 urls: vec![url],
                 username: username.clone(),
                 password: Some(Zeroizing::new(password.clone())),
@@ -254,6 +530,9 @@ pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
                 notes: String::new(),
             }) {
                 Ok(id) => {
+                    // 利用者がこのページで入力して保存したものなので、このサイトでの利用は確認済みとする
+                    guard.approve(&id, &origin);
+                    guard.record("saved", &host, &title);
                     let mut o = Outcome::ok(json!({ "id": id }));
                     o.activity = true;
                     o.changed = true;
@@ -281,6 +560,7 @@ pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
                 },
             ) {
                 Ok(()) => {
+                    guard.record("updated", &host, &old.title);
                     let mut o = Outcome::ok(json!({ "id": id }));
                     o.activity = true;
                     o.changed = true;
@@ -291,6 +571,10 @@ pub fn handle(req: Request, session: Option<&mut Session>) -> Outcome {
         }
         _ => unreachable!(),
     }
+}
+
+fn items_is_empty(out: &Value) -> bool {
+    out["items"].as_array().is_none_or(Vec::is_empty)
 }
 
 // ---------------- アプリ側：127.0.0.1 で待ち受ける ----------------
@@ -656,7 +940,8 @@ mod tests {
 
     #[test]
     fn locked_app_answers_status_but_not_items() {
-        let v = |r: &str| handle(serde_json::from_str(r).unwrap(), None).response;
+        let mut g = Guard::in_memory();
+        let mut v = |r: &str| handle(serde_json::from_str(r).unwrap(), None, &mut g).response;
         assert_eq!(v(r#"{"type":"status"}"#)["locked"], true);
         assert_eq!(
             v(r#"{"type":"list","origin":"https://example.com"}"#)["error"],
@@ -667,5 +952,72 @@ mod tests {
             "locked"
         );
         assert!(serde_json::from_str::<Request>(r#"{"type":"unlock","password":"x"}"#).is_err());
+    }
+
+    #[test]
+    fn guard_asks_once_per_item_and_site() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("approved-sites.json");
+        let site = page_origin("https://example.com").unwrap();
+        let other = page_origin("https://login.example.com").unwrap();
+        let mut g = Guard { path: Some(path.clone()), ..Guard::in_memory() };
+        assert!(!g.is_approved("item-1", &site));
+        g.pending = Some(PendingApproval {
+            item_id: "item-1".into(),
+            title: "Example".into(),
+            username: "alice".into(),
+            origin: "https://example.com".into(),
+            host: "example.com".into(),
+            at: Some(Instant::now()),
+        });
+        assert_eq!(g.resolve(true).unwrap().title, "Example");
+        assert!(g.pending().is_none());
+        assert!(g.is_approved("item-1", &site));
+        // 許可は「項目とサイトの組み合わせ」ごと
+        assert!(!g.is_approved("item-1", &other));
+        assert!(!g.is_approved("item-2", &site));
+        // 保存先には、サイト名も項目 ID も平文では残さない
+        let saved = std::fs::read_to_string(&path).unwrap();
+        assert!(!saved.contains("example") && !saved.contains("item-1"));
+        let approved = serde_json::from_str::<Vec<String>>(&saved).unwrap();
+        let mut again = Guard { path: Some(path), approved: approved.into_iter().collect(), ..Guard::in_memory() };
+        assert!(again.is_approved("item-1", &site));
+        again.forget_approvals().unwrap();
+        assert!(!again.is_approved("item-1", &site));
+    }
+
+    #[test]
+    fn guard_denial_and_expiry_do_not_approve() {
+        let site = page_origin("https://example.com").unwrap();
+        let pending = |at| PendingApproval {
+            item_id: "item-1".into(),
+            title: "Example".into(),
+            username: String::new(),
+            origin: "https://example.com".into(),
+            host: "example.com".into(),
+            at,
+        };
+        let mut g = Guard::in_memory();
+        g.pending = Some(pending(Some(Instant::now())));
+        g.resolve(false);
+        assert!(!g.is_approved("item-1", &site));
+        assert_eq!(g.log()[0].event, "denied");
+        // 期限が切れた確認には答えられない
+        if let Some(old) = Instant::now().checked_sub(APPROVAL_TTL + Duration::from_secs(1)) {
+            g.pending = Some(pending(Some(old)));
+            assert!(g.resolve(true).is_none());
+            assert!(!g.is_approved("item-1", &site));
+        }
+    }
+
+    #[test]
+    fn guard_counts_bursts_of_password_requests() {
+        let mut g = Guard::in_memory();
+        for _ in 0..MAX_FILLS_PER_WINDOW {
+            assert!(!g.too_many_fills());
+        }
+        assert!(g.too_many_fills());
+        g.reset();
+        assert!(!g.too_many_fills());
     }
 }

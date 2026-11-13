@@ -101,6 +101,9 @@ enum Cmd {
     BridgeRequest {
         /// 要求の JSON
         json: String,
+        /// アプリの画面での「許可」を押したものとして扱う
+        #[arg(long)]
+        approve: bool,
     },
     /// アカウントパスワードを変更する
     Passwd,
@@ -263,10 +266,16 @@ fn cmd_import(p: &Prompter, file: PathBuf) -> R<()> {
     Ok(())
 }
 
-fn cmd_bridge_request(p: &Prompter, json: String) -> R<()> {
-    let req = serde_json::from_str(&json)?;
+fn cmd_bridge_request(p: &Prompter, json: String, approve: bool) -> R<()> {
+    use vault_client::bridge::{Guard, handle};
     let mut s = unlock(p)?;
-    println!("{}", vault_client::bridge::handle(req, Some(&mut s)).response);
+    let mut guard = Guard::load();
+    let mut out = handle(serde_json::from_str(&json)?, Some(&mut s), &mut guard);
+    if approve && out.response["error"] == "needs_approval" {
+        guard.resolve(true);
+        out = handle(serde_json::from_str(&json)?, Some(&mut s), &mut guard);
+    }
+    println!("{}", out.response);
     Ok(())
 }
 
@@ -422,7 +431,7 @@ fn run() -> R<()> {
         } => cmd_show(&p, query, reveal, copy, clear_after),
         Cmd::Rm { query } => cmd_rm(&p, query),
         Cmd::Import { file } => cmd_import(&p, file),
-        Cmd::BridgeRequest { json } => cmd_bridge_request(&p, json),
+        Cmd::BridgeRequest { json, approve } => cmd_bridge_request(&p, json, approve),
         Cmd::Passwd => cmd_passwd(&p),
         Cmd::Gen { length } => {
             println!("{}", generator::generate(length)?.as_str());

@@ -56,6 +56,19 @@ async function render() {
     return show(el('p', 'muted', list.error === 'bad_origin' ? 'このページでは使えません。' : (list.message || '一覧を取得できませんでした。')));
   }
   document.getElementById('host').textContent = list.host;
+  if (!list.items.length && list.related && list.related.kind === 'lookalike') {
+    return show(
+      el('p', 'error', `注意：このページは、保存済みの「${list.related.host}」に似ていますが、別のサイトです。`),
+      el('p', 'muted', `${list.related.host}（${list.related.title}）のパスワードを、ここに入力しないでください。アドレスをよく確かめてください。`),
+    );
+  }
+  if (!list.items.length && list.related) {
+    return show(
+      el('p', '', `保存済みの ${list.related.host}（${list.related.title}）とはアドレスが違います。`),
+      el('p', 'muted', 'ここでも使うには、アプリで項目の URL にこのページのアドレスを追加してください。'),
+      openAppButton('アプリを開く'),
+    );
+  }
   if (!list.items.length) {
     return show(
       el('p', '', 'このサイトの項目はまだありません。'),

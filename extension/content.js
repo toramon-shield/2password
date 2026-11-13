@@ -86,6 +86,10 @@
     .btn { padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; background: #f3f4f6; color: #111827; }
     .btn.primary { background: #4f46e5; color: #fff; }
     .btn:hover { filter: brightness(.96); }
+    .note { padding: 8px 12px; font-size: 12px; color: #374151; }
+    .note b { display: block; font-size: 13px; color: #111827; }
+    .note.warn { background: #fef2f2; color: #991b1b; }
+    .note.warn b { color: #991b1b; }
     @media (prefers-color-scheme: dark) {
       .box { color: #f3f4f6; background: #1f2937; border-color: #374151; }
       .head { color: #9ca3af; border-color: #374151; }
@@ -94,6 +98,10 @@
       .banner p { color: #d1d5db; }
       .btn { background: #374151; color: #f3f4f6; }
       .btn.primary { background: #6366f1; color: #fff; }
+      .note { color: #d1d5db; }
+      .note b { color: #f3f4f6; }
+      .note.warn { background: #7f1d1d; color: #fecaca; }
+      .note.warn b { color: #fff; }
     }`;
 
   function makeLayer() {
@@ -124,6 +132,34 @@
     b.addEventListener('click', e => { if (e.isTrusted) onClick(); });
     return b;
   };
+
+  const note = (cls, title, text) => {
+    const n = el('div', 'note' + (cls ? ' ' + cls : ''));
+    n.append(el('b', '', title), el('span', '', text));
+    return n;
+  };
+
+  /** 右上に短いお知らせを出す（アプリでの確認が必要なときなど） */
+  let notice = null;
+  function showNotice(title, text, warn) {
+    if (notice) notice.remove();
+    const { host, root } = makeLayer();
+    notice = host;
+    const box = el('div', 'box banner');
+    const h = el('h1');
+    h.append(el('span', 'logo', '2P'), el('span', '', title));
+    const p = el('p', '', text);
+    if (warn) p.style.color = '#dc2626';
+    box.append(h, p);
+    root.append(box);
+    setTimeout(() => { if (notice === host) { host.remove(); notice = null; } }, 9000);
+  }
+  /** パスワードを受け取れなかった理由を知らせる */
+  function explain(res) {
+    if (res.error === 'needs_approval') showNotice('2password アプリで許可してください', 'このサイトで使うのは初めてです。アプリの画面で許可してから、もう一度項目を選んでください。');
+    else if (res.error === 'rate_limited') showNotice('2password をロックしました', res.message || '短い時間に要求が続きました。', true);
+    else if (res.error === 'locked') showNotice('2password はロック中です', 'アプリでロックを解除してください。');
+  }
 
   // ---------------- 候補の一覧 ----------------
 
@@ -157,7 +193,7 @@
           closeMenu();
           const got = await send({ type: 'fill', id: it.id });
           if (got.ok) fill(targets, got.username, got.password);
-          else cache = null;
+          else { cache = null; explain(got); }
         });
         b.append(el('b', '', it.title), el('span', '', it.username || '（ユーザー名なし）'));
         rows.push(b);
@@ -174,6 +210,27 @@
         b.append(el('b', '', '強いパスワードを作って入力'), el('span', '', '送信後に、保存するか確認します'));
         rows.push(b);
       }
+      // 一致する項目がないとき：保存済みのサイトに似ていれば注意する（偽サイト対策）
+      const rel = !res.items.length && res.related;
+      if (rel && rel.kind === 'lookalike') {
+        title = '注意：保存済みのサイトとは別のサイトです';
+        rows.push(note('warn', `「${rel.host}」に似ていますが、別のサイトです`,
+          `このページは ${location.host} です。${rel.host}（${rel.title}）のパスワードを、ここに入力しないでください。アドレスをよく確かめてください。`));
+      } else if (rel && rel.kind === 'same_site' && targets.pass) {
+        rows.push(note('', `${rel.host}（${rel.title}）とはアドレスが違います`,
+          `このページは ${location.host} です。ここでも使うには、アプリで項目の URL にこのアドレスを追加してください。`));
+        const b = button('item', () => { closeMenu(); cache = null; send({ type: 'focus' }); });
+        b.append(el('b', '', 'アプリを開く'), el('span', '', '項目の「編集」から URL を追加できます'));
+        rows.push(b);
+      } else if (!res.items.length && res.idn && targets.pass) {
+        title = '注意：アドレスを確かめてください';
+        rows.push(note('warn', 'アドレスに特殊な文字が含まれています',
+          `このページ（${location.host}）は、見た目がよく似た別の文字を使った偽サイトの可能性があります。`));
+      }
+    } else if (res.error === 'insecure' && isPassword(field)) {
+      title = '2password';
+      rows.push(note('warn', '暗号化されていないページです（http）',
+        '通信の途中でパスワードを読まれるおそれがあるため、このページには入力しません。'));
     } else if (res.error === 'locked' && isPassword(field)) {
       title = '2password はロック中です';
       const b = button('item', () => { closeMenu(); cache = null; send({ type: 'focus' }); });

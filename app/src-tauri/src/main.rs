@@ -26,6 +26,8 @@ struct AppState {
     last_activity: Mutex<Instant>,
     /// このプロセスで作成した Emergency Kit のパス（open_kit はこれしか開かない）
     kit_path: Mutex<Option<std::path::PathBuf>>,
+    /// ブラウザ拡張からの要求の見張り（初回の確認・連続要求・履歴）
+    guard: Mutex<bridge::Guard>,
 }
 
 type St = Arc<AppState>;
@@ -38,6 +40,7 @@ impl AppState {
     fn lock(&self) {
         // Session を drop すると Vault Key・AUK・平文が zeroize される
         self.session.lock().unwrap().take();
+        self.guard.lock().unwrap().reset();
     }
 }
 
@@ -451,15 +454,61 @@ struct BrowserStatus {
     installed: bool,
     dev_extension_id: &'static str,
     extra_extension_ids: Vec<String>,
+    /// 確認済みの「項目とサイト」の組み合わせの数
+    approved_sites: usize,
 }
 
 #[tauri::command]
-fn browser_status() -> BrowserStatus {
+fn browser_status(st: State<'_, St>) -> BrowserStatus {
     BrowserStatus {
         installed: bridge::native_host_installed(),
         dev_extension_id: bridge::DEV_EXTENSION_ID,
         extra_extension_ids: bridge::extra_extension_ids(),
+        approved_sites: st.guard.lock().unwrap().approved_count(),
     }
+}
+
+/// 利用者の確認を待っている、ブラウザ拡張からの要求
+#[tauri::command]
+fn browser_pending(st: State<'_, St>) -> Option<bridge::PendingApproval> {
+    if st.session.lock().unwrap().is_none() {
+        return None;
+    }
+    st.guard.lock().unwrap().pending()
+}
+
+/// 確認への答え。許可すると、その項目をそのサイトで使えるようになる
+#[tauri::command]
+fn browser_approve(st: State<'_, St>, allow: bool, item_id: String, origin: String) -> Res<()> {
+    if st.session.lock().unwrap().is_none() {
+        return Err("ロックされています".into());
+    }
+    st.touch();
+    let mut guard = st.guard.lock().unwrap();
+    // 画面に出した確認と、いま待っている要求が同じものであること（表示中に差し替えられた要求を許可しない）
+    let same = guard
+        .pending()
+        .is_some_and(|p| p.item_id == item_id && p.origin == origin);
+    if !same {
+        return Err("確認の期限が切れました。ブラウザでもう一度選んでください".into());
+    }
+    guard.resolve(allow);
+    Ok(())
+}
+
+/// ブラウザ拡張からの要求の履歴（新しい順。パスワードは含まない）
+#[tauri::command]
+fn browser_log(st: State<'_, St>) -> Vec<bridge::LogEntry> {
+    if st.session.lock().unwrap().is_none() {
+        return vec![];
+    }
+    st.guard.lock().unwrap().log()
+}
+
+/// 確認済みのサイトをすべて取り消す（次に使うとき、もう一度確認する）
+#[tauri::command]
+fn browser_forget_approvals(st: State<'_, St>) -> Res<()> {
+    st.guard.lock().unwrap().forget_approvals().map_err(err)
 }
 
 /// ブラウザ拡張がこのアプリを呼び出せるように登録する（いまの利用者の分だけ）
@@ -497,8 +546,16 @@ fn start_bridge(app: &tauri::AppHandle, st: St) {
     let result = bridge::serve(move |req| {
         let out = {
             let mut g = st.session.lock().unwrap();
-            bridge::handle(req, g.as_mut())
+            let mut guard = st.guard.lock().unwrap();
+            bridge::handle(req, g.as_mut(), &mut guard)
         };
+        if out.lock {
+            st.lock();
+            let _ = handle.emit("locked", "browser");
+        }
+        if out.approval {
+            let _ = handle.emit("browser-approval", ());
+        }
         if out.activity {
             st.touch();
         }
@@ -530,6 +587,7 @@ fn main() {
         session: Mutex::new(None),
         last_activity: Mutex::new(Instant::now()),
         kit_path: Mutex::new(None),
+        guard: Mutex::new(bridge::Guard::load()),
     });
     let watcher = state.clone();
     let bridge_state = state.clone();
@@ -580,6 +638,10 @@ fn main() {
             browser_status,
             browser_install,
             browser_uninstall,
+            browser_pending,
+            browser_approve,
+            browser_log,
+            browser_forget_approvals,
             import_csv,
         ])
         .run(tauri::generate_context!())

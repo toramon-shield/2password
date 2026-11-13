@@ -83,15 +83,26 @@ check "同じ CSV をもう一度取り込んでも重複しない" 'echo "$OUT"
 br() { printf '%s\n' "$PW2" | A bridge-request "$1"; }
 check "拡張：一致するサイトの項目だけを一覧に出す（パスワードは含めない）" 'O=$(br "{\"type\":\"list\",\"origin\":\"https://www.shop.example\"}"); echo "$O" | grep -q "\"title\":\"Shop\"" && ! echo "$O" | grep -q -E "P@ss|銀行"'
 SHOP=$(br '{"type":"list","origin":"https://shop.example"}' | grep -o '"id":"[0-9a-f]*"' | head -1 | cut -d'"' -f4)
-check "拡張：一致するサイトにはパスワードを返す" 'br "{\"type\":\"fill\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\"}" | grep -q "\"username\":\"carol\""'
+FILL="{\"type\":\"fill\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\"}"
+check "拡張：初めてのサイトでは、アプリでの確認なしにパスワードを返さない" 'O=$(br "$FILL"); echo "$O" | grep -q "needs_approval" && ! echo "$O" | grep -q "P@ss"'
+check "拡張：アプリで許可するとパスワードを返す" 'printf "%s\n" "$PW2" | A bridge-request --approve "$FILL" | grep -q "\"username\":\"carol\""'
+check "拡張：許可済みのサイトには次回から確認なしで返す" 'br "$FILL" | grep -q "\"username\":\"carol\""'
+check "拡張：許可の記録にサイト名を平文で残さない" '[ -f "$WORK/devA/approved-sites.json" ] && ! grep -q "shop" "$WORK/devA/approved-sites.json"'
+check "拡張：同じドメインでも別のホストにはパスワードを返さない" 'br "{\"type\":\"fill\",\"origin\":\"https://blog.shop.example\",\"id\":\"$SHOP\"}" | grep -q "no_match"'
+check "拡張：同じドメインの別ホストでは、候補を出さずに知らせる" 'O=$(br "{\"type\":\"list\",\"origin\":\"https://blog.shop.example\"}"); echo "$O" | grep -q "\"items\":\[\]" && echo "$O" | grep -q "same_site"'
+check "拡張：似た名前の別サイトでは注意を出す" 'br "{\"type\":\"list\",\"origin\":\"https://shop.example.evil.test\"}" | grep -q "lookalike"'
+check "拡張：無関係のサイトでは保存済みのサイト名を教えない" 'O=$(br "{\"type\":\"list\",\"origin\":\"https://unrelated.test\"}"); ! echo "$O" | grep -q "related" && ! echo "$O" | grep -q "shop"'
 check "拡張：偽サイトにはパスワードを返さない" 'O=$(br "{\"type\":\"fill\",\"origin\":\"https://shop.example.evil.test\",\"id\":\"$SHOP\"}"); echo "$O" | grep -q "no_match" && ! echo "$O" | grep -q "P@ss"'
-check "拡張：http のページにはパスワードを返さない" 'br "{\"type\":\"fill\",\"origin\":\"http://shop.example\",\"id\":\"$SHOP\"}" | grep -q "no_match"'
+check "拡張：http のページにはパスワードを返さない" 'O=$(br "{\"type\":\"fill\",\"origin\":\"http://shop.example\",\"id\":\"$SHOP\"}"); echo "$O" | grep -q "insecure" && ! echo "$O" | grep -q "P@ss"'
+check "拡張：http のページでは保存もしない" 'br "{\"type\":\"save\",\"origin\":\"http://plain.example\",\"username\":\"x\",\"password\":\"y\"}" | grep -q "insecure"'
 check "拡張：保存済みのログインは保存を聞かない" 'br "{\"type\":\"check\",\"origin\":\"https://shop.example\",\"username\":\"carol\",\"password\":\"Sh,op-\\\"P@ss\"}" | grep -q "\"result\":\"known\""'
 check "拡張：パスワードが変わっていたら更新を提案する" 'br "{\"type\":\"check\",\"origin\":\"https://shop.example\",\"username\":\"carol\",\"password\":\"new-pass\"}" | grep -q "\"result\":\"update\""'
 br "{\"type\":\"update\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\",\"password\":\"new-pass\"}" > /dev/null
 check "拡張：パスワードの更新が他の端末にも届く" 'printf "%s\n" "$PW2" | Bd show Shop --reveal | grep -q "new-pass"'
 check "拡張：別サイトからは既存の項目を更新できない" 'br "{\"type\":\"update\",\"origin\":\"https://evil.test\",\"id\":\"$SHOP\",\"password\":\"hacked\"}" | grep -q "no_match"'
 br '{"type":"save","origin":"https://news.example","username":"dave","password":"News-Pass-1"}' > /dev/null
+NEWS=$(br '{"type":"list","origin":"https://news.example"}' | grep -o '"id":"[0-9a-f-]*"' | head -1 | cut -d'"' -f4)
+check "拡張：ブラウザで保存した項目は、そのサイトで確認なしに使える" 'br "{\"type\":\"fill\",\"origin\":\"https://news.example\",\"id\":\"$NEWS\"}" | grep -q "News-Pass-1"'
 check "拡張：新しいログインを保存できる" 'O=$(printf "%s\n" "$PW2" | Bd show news.example --reveal); echo "$O" | grep -q "News-Pass-1" && echo "$O" | grep -q "https://news.example"'
 
 A forget > /dev/null; Bd forget > /dev/null
