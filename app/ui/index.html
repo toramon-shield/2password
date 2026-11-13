@@ -180,6 +180,24 @@
     </form>
     <p class="muted small">保管庫本体は再暗号化せず、Vault Key を包み直すだけです。他の端末でも次回から新しいパスワードを使います。</p>
 
+    <h3>ブラウザ拡張機能</h3>
+    <p class="muted small">Chrome / Edge / Brave の拡張機能から、ログイン画面への自動入力と、ログイン後の保存ができます。拡張機能を入れたあと、ここで接続してください。</p>
+    <p class="small" id="br-state"></p>
+    <div class="row wrap">
+      <button class="secondary" id="b-browser-install">ブラウザと接続する</button>
+      <button class="secondary" id="b-browser-uninstall">接続を解除</button>
+    </div>
+    <details class="small">
+      <summary>拡張機能の ID を指定する（自分でビルドした拡張を使う場合）</summary>
+      <input id="br-extid" placeholder="chrome://extensions に表示される 32 文字の ID" spellcheck="false" maxlength="32">
+      <p class="muted small" id="br-ids"></p>
+    </details>
+
+    <h3>他のツールから取り込む</h3>
+    <p class="muted small">1Password・Chrome・Edge・Bitwarden などが書き出した CSV を取り込みます。取り込んだあと、CSV ファイル（平文のパスワード入り）は削除してください。</p>
+    <input type="file" id="f-import" accept=".csv,text/csv" hidden>
+    <button class="secondary" id="b-import">CSV を選んで取り込む</button>
+
     <h3>この端末</h3>
     <p class="muted small">5分間操作がないと自動でロックします。コピーしたパスワードは30秒後にクリップボードから消えます。</p>
     <button class="danger" id="b-forget">この端末から消す</button>

@@ -1,0 +1,19 @@
+:root { color-scheme: light dark; --fg: #111827; --mute: #6b7280; --bg: #fff; --line: #e5e7eb; --hover: #eef2ff; --accent: #4f46e5; }
+@media (prefers-color-scheme: dark) {
+  :root { --fg: #f3f4f6; --mute: #9ca3af; --bg: #1f2937; --line: #374151; --hover: #312e81; --accent: #6366f1; }
+}
+body { margin: 0; width: 320px; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: var(--fg); background: var(--bg); }
+header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+header #host { margin-left: auto; font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px; }
+.logo { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 11px; }
+main { padding: 6px 0; }
+p { margin: 8px 14px; }
+ol { margin: 8px 14px 8px 34px; padding: 0; font-size: 13px; }
+.muted { color: var(--mute); font-size: 13px; }
+.error { color: #dc2626; font-size: 13px; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: left; }
+button.item { display: block; width: 100%; padding: 8px 14px; }
+button.item:hover, button.item:focus-visible { background: var(--hover); outline: none; }
+button.item b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.item span { display: block; font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.primary { margin: 4px 14px 10px; padding: 7px 14px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; font-size: 13px; }

@@ -50,3 +50,6 @@ desktop.ini
 .vscode/
 .idea/
 *.swp
+
+# ストア提出用の ZIP（scripts/package-extension.py が作る）
+/dist/

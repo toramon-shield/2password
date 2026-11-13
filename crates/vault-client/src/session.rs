@@ -655,6 +655,41 @@ impl Session {
         Ok(id)
     }
 
+    /// 取り込んだ項目をまとめて追加し、保存は 1 回だけ行う。
+    /// タイトル・ユーザー名・パスワード・URL がすべて同じ項目は、重複として飛ばす。
+    /// 返り値は（追加した件数、飛ばした件数）。
+    pub fn import(&mut self, items: Vec<crate::import::Imported>) -> R<(usize, usize)> {
+        let (mut added, mut skipped) = (0, 0);
+        for it in items {
+            let duplicate = self.vault.items().any(|i| {
+                i.title == it.title
+                    && i.username == it.username
+                    && i.password == *it.password
+                    && i.urls == it.urls
+            });
+            if duplicate {
+                skipped += 1;
+                continue;
+            }
+            self.vault.upsert(Item {
+                id: new_id()?,
+                kind: "login".into(),
+                title: it.title,
+                urls: it.urls,
+                username: it.username,
+                password: it.password.to_string(),
+                notes: it.notes,
+                updated_at: now_ms(),
+                deleted: false,
+            });
+            added += 1;
+        }
+        if added > 0 {
+            self.save()?;
+        }
+        Ok((added, skipped))
+    }
+
     /// 既存の項目を書き換える（password が None ならそのまま）
     pub fn update(&mut self, id: &str, input: ItemInput) -> R<()> {
         let old = self.get(id).ok_or("項目が見つかりません")?.clone();

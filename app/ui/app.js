@@ -366,6 +366,7 @@ async function openSettings() {
     $('#b-google-login').disabled = !s.oauth_ready;
   } catch (e) { kv.innerHTML = ''; toast(String(e), true); }
   $('#st-version').textContent = '2password ' + info.version;
+  refreshBrowser();
 }
 $('#b-settings').addEventListener('click', openSettings);
 $('#b-settings-close').addEventListener('click', () => $('#d-settings').close());
@@ -397,6 +398,44 @@ $('#b-forget').addEventListener('click', async () => {
   if (!await confirmBox('この端末から消しますか？', 'この端末の設定と Secret Key を消します。保管場所の暗号文は残ります。再び使うには Emergency Kit の Secret Key が必要です。', '消す')) return;
   try { await invoke('forget_device'); $('#d-settings').close(); info = await invoke('app_info'); show('welcome'); toast('この端末から消しました'); }
   catch (e) { toast(String(e), true); }
+});
+
+// ---------- ブラウザ拡張機能 ----------
+async function refreshBrowser() {
+  const b = await invoke('browser_status');
+  $('#br-state').textContent = b.installed
+    ? '✓ ブラウザと接続済みです'
+    : '未接続です（アプリを更新・移動したあとは、もう一度接続してください）';
+  $('#b-browser-uninstall').hidden = !b.installed;
+  $('#br-ids').textContent = '登録済みの ID: ' + [b.dev_extension_id + '（開発版）', ...b.extra_extension_ids].join('、');
+}
+$('#b-browser-install').addEventListener('click', async () => {
+  try {
+    const browsers = await invoke('browser_install', { extensionId: $('#br-extid').value.trim() || null });
+    $('#br-extid').value = '';
+    toast('接続しました: ' + browsers.join('、') + '（ブラウザを再起動すると確実です）');
+  } catch (e) { toast(String(e), true); }
+  refreshBrowser();
+});
+$('#b-browser-uninstall').addEventListener('click', async () => {
+  try { await invoke('browser_uninstall'); toast('接続を解除しました'); } catch (e) { toast(String(e), true); }
+  refreshBrowser();
+});
+// 拡張機能から保存・更新されたら一覧を更新する
+listen('vault-changed', () => { if (!$('#v-main').hidden) refreshList(); });
+
+// ---------- CSV の取り込み ----------
+$('#b-import').addEventListener('click', () => $('#f-import').click());
+$('#f-import').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) return toast('ファイルが大きすぎます（20MB まで）', true);
+  try {
+    const [added, skipped] = await invoke('import_csv', { text: await file.text() });
+    toast(`${added} 件を取り込みました（重複で飛ばした項目 ${skipped} 件）。CSV ファイルは削除してください`);
+    await refreshList();
+  } catch (err) { toast(String(err), true); }
 });
 
 boot().catch(e => { document.body.textContent = '起動に失敗しました: ' + e; });

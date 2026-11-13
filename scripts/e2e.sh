@@ -72,6 +72,28 @@ check "書き戻しを検知し、控えの新しい account.2pw で復元する
 printf '%s\n' "$PW2" | A rm Cloudflare > /dev/null
 check "削除が他の端末にも反映される（墓石）" '! (printf "%s\n" "$PW2" | Bd list | grep -q Cloudflare)'
 
+# CSV の取り込み（1Password の書き出し形式）
+printf 'Title,Url,Username,Password,OTPAuth,Favorite,Archived,Tags,Notes\nShop,https://shop.example/login,carol,"Sh,op-""P@ss",,false,false,,memo\n' > "$WORK/export.csv"
+OUT=$(printf '%s\n' "$PW2" | A import "$WORK/export.csv")
+check "1Password 形式の CSV を取り込める" 'echo "$OUT" | grep -q "1 件を取り込みました" && printf "%s\n" "$PW2" | A show Shop --reveal | grep -q "Sh,op-\"P@ss"'
+OUT=$(printf '%s\n' "$PW2" | A import "$WORK/export.csv")
+check "同じ CSV をもう一度取り込んでも重複しない" 'echo "$OUT" | grep -q "0 件を取り込みました"'
+
+# ブラウザ拡張からの要求（アプリと同じ処理を CLI から呼ぶ）
+br() { printf '%s\n' "$PW2" | A bridge-request "$1"; }
+check "拡張：一致するサイトの項目だけを一覧に出す（パスワードは含めない）" 'O=$(br "{\"type\":\"list\",\"origin\":\"https://www.shop.example\"}"); echo "$O" | grep -q "\"title\":\"Shop\"" && ! echo "$O" | grep -q -E "P@ss|銀行"'
+SHOP=$(br '{"type":"list","origin":"https://shop.example"}' | grep -o '"id":"[0-9a-f]*"' | head -1 | cut -d'"' -f4)
+check "拡張：一致するサイトにはパスワードを返す" 'br "{\"type\":\"fill\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\"}" | grep -q "\"username\":\"carol\""'
+check "拡張：偽サイトにはパスワードを返さない" 'O=$(br "{\"type\":\"fill\",\"origin\":\"https://shop.example.evil.test\",\"id\":\"$SHOP\"}"); echo "$O" | grep -q "no_match" && ! echo "$O" | grep -q "P@ss"'
+check "拡張：http のページにはパスワードを返さない" 'br "{\"type\":\"fill\",\"origin\":\"http://shop.example\",\"id\":\"$SHOP\"}" | grep -q "no_match"'
+check "拡張：保存済みのログインは保存を聞かない" 'br "{\"type\":\"check\",\"origin\":\"https://shop.example\",\"username\":\"carol\",\"password\":\"Sh,op-\\\"P@ss\"}" | grep -q "\"result\":\"known\""'
+check "拡張：パスワードが変わっていたら更新を提案する" 'br "{\"type\":\"check\",\"origin\":\"https://shop.example\",\"username\":\"carol\",\"password\":\"new-pass\"}" | grep -q "\"result\":\"update\""'
+br "{\"type\":\"update\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\",\"password\":\"new-pass\"}" > /dev/null
+check "拡張：パスワードの更新が他の端末にも届く" 'printf "%s\n" "$PW2" | Bd show Shop --reveal | grep -q "new-pass"'
+check "拡張：別サイトからは既存の項目を更新できない" 'br "{\"type\":\"update\",\"origin\":\"https://evil.test\",\"id\":\"$SHOP\",\"password\":\"hacked\"}" | grep -q "no_match"'
+br '{"type":"save","origin":"https://news.example","username":"dave","password":"News-Pass-1"}' > /dev/null
+check "拡張：新しいログインを保存できる" 'O=$(printf "%s\n" "$PW2" | Bd show news.example --reveal); echo "$O" | grep -q "News-Pass-1" && echo "$O" | grep -q "https://news.example"'
+
 A forget > /dev/null; Bd forget > /dev/null
 echo "結果: 成功 $pass / 失敗 $fail"
 [ "$fail" -eq 0 ]

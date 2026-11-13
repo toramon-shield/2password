@@ -3,6 +3,9 @@
 //! - 暗号処理・保存はすべて vault-client / vault-core（CLI と同じコード）
 //! - 画面（WebView）には、利用者が「表示」を押したときだけパスワードを渡す
 //! - 無操作が続くと自動ロックし、鍵とパスワードをメモリから消す
+//! - ブラウザ拡張からは Native Messaging 経由で呼ばれる（`vault_client::bridge`）。
+//!   ブラウザが `chrome-extension://…` を引数にしてこの実行ファイルを起動したときは、
+//!   画面を出さずに中継役（ホスト）として動く
 #![forbid(unsafe_code)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -12,7 +15,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{Emitter, Manager, State};
 use vault_client::config::{self, Backend, Config};
-use vault_client::{ItemInput, Session, StoreChoice, drive};
+use vault_client::{ItemInput, Session, StoreChoice, bridge, drive};
 use zeroize::Zeroizing;
 
 const AUTO_LOCK: Duration = Duration::from_secs(5 * 60);
@@ -441,18 +444,101 @@ fn touch(st: State<'_, St>) {
     st.touch();
 }
 
+// ---------------- ブラウザ拡張・取り込み ----------------
+
+#[derive(Serialize)]
+struct BrowserStatus {
+    installed: bool,
+    dev_extension_id: &'static str,
+    extra_extension_ids: Vec<String>,
+}
+
+#[tauri::command]
+fn browser_status() -> BrowserStatus {
+    BrowserStatus {
+        installed: bridge::native_host_installed(),
+        dev_extension_id: bridge::DEV_EXTENSION_ID,
+        extra_extension_ids: bridge::extra_extension_ids(),
+    }
+}
+
+/// ブラウザ拡張がこのアプリを呼び出せるように登録する（いまの利用者の分だけ）
+#[tauri::command]
+async fn browser_install(extension_id: Option<String>) -> Res<Vec<String>> {
+    run(move || {
+        if let Some(id) = extension_id.filter(|i| !i.trim().is_empty()) {
+            bridge::add_extension_id(&id).map_err(err)?;
+        }
+        bridge::install_native_host().map_err(err)
+    })
+    .await
+}
+
+#[tauri::command]
+async fn browser_uninstall() -> Res<()> {
+    run(|| bridge::uninstall_native_host().map_err(err)).await
+}
+
+/// 1Password・Chrome などが書き出した CSV の中身を取り込む。返り値は（追加、重複で飛ばした）件数
+#[tauri::command]
+async fn import_csv(st: State<'_, St>, text: String) -> Res<(usize, usize)> {
+    let st = st.inner().clone();
+    let text = Zeroizing::new(text);
+    run(move || {
+        let items = vault_client::import::parse(&text).map_err(err)?;
+        with_session(&st, |s| s.import(items).map_err(err))
+    })
+    .await
+}
+
+/// ブラウザ拡張からの要求を受け付ける
+fn start_bridge(app: &tauri::AppHandle, st: St) {
+    let handle = app.clone();
+    let result = bridge::serve(move |req| {
+        let out = {
+            let mut g = st.session.lock().unwrap();
+            bridge::handle(req, g.as_mut())
+        };
+        if out.activity {
+            st.touch();
+        }
+        if out.changed {
+            let _ = handle.emit("vault-changed", ());
+        }
+        if out.focus
+            && let Some(w) = handle.get_webview_window("main")
+        {
+            let _ = w.unminimize();
+            let _ = w.show();
+            let _ = w.set_focus();
+        }
+        out.response
+    });
+    if let Err(e) = result {
+        eprintln!("ブラウザ拡張との連絡路を開けませんでした: {e}");
+    }
+}
+
 fn main() {
+    // ブラウザが Native Messaging ホストとして起動した場合は、画面を出さずに中継だけ行う
+    if let Some(caller) = std::env::args().find(|a| a.starts_with("chrome-extension://")) {
+        let _ = bridge::run_native_host(&caller);
+        return;
+    }
+
     let state: St = Arc::new(AppState {
         session: Mutex::new(None),
         last_activity: Mutex::new(Instant::now()),
         kit_path: Mutex::new(None),
     });
     let watcher = state.clone();
+    let bridge_state = state.clone();
 
     tauri::Builder::default()
         .manage(state)
         .setup(move |app| {
             // 自動ロック：無操作が AUTO_LOCK 続いたら鍵をメモリから消す
+            start_bridge(app.handle(), bridge_state);
             let handle = app.handle().clone();
             std::thread::spawn(move || {
                 loop {
@@ -491,6 +577,10 @@ fn main() {
             open_url,
             open_kit,
             touch,
+            browser_status,
+            browser_install,
+            browser_uninstall,
+            import_csv,
         ])
         .run(tauri::generate_context!())
         .expect("2password の起動に失敗しました");

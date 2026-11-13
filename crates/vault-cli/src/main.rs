@@ -91,6 +91,17 @@ enum Cmd {
     },
     /// 項目を削除する
     Rm { query: String },
+    /// 1Password・Chrome などが書き出した CSV を取り込む
+    Import {
+        /// CSV ファイル（1 行目が見出し）
+        file: PathBuf,
+    },
+    /// ブラウザ拡張からの要求を 1 件処理して結果を表示する（テスト用）
+    #[command(hide = true)]
+    BridgeRequest {
+        /// 要求の JSON
+        json: String,
+    },
     /// アカウントパスワードを変更する
     Passwd,
     /// パスワードを生成して表示する（保存しない）
@@ -231,6 +242,31 @@ fn cmd_add(
     print_notices(&mut s.notices);
     print_saved(&s);
     println!("✓ 「{title}」を追加しました");
+    Ok(())
+}
+
+fn cmd_import(p: &Prompter, file: PathBuf) -> R<()> {
+    let text = Zeroizing::new(std::fs::read_to_string(&file)?);
+    let items = vault_client::import::parse(&text)?;
+    println!("… {} 件を読み込みました", items.len());
+    let mut s = unlock(p)?;
+    let (added, skipped) = s.import(items)?;
+    print_notices(&mut s.notices);
+    if added > 0 {
+        print_saved(&s);
+    }
+    println!("✓ {added} 件を取り込みました（重複で飛ばした項目 {skipped} 件）");
+    println!(
+        "  → {} には平文のパスワードが入っています。取り込みを確かめたら削除してください。",
+        file.display()
+    );
+    Ok(())
+}
+
+fn cmd_bridge_request(p: &Prompter, json: String) -> R<()> {
+    let req = serde_json::from_str(&json)?;
+    let mut s = unlock(p)?;
+    println!("{}", vault_client::bridge::handle(req, Some(&mut s)).response);
     Ok(())
 }
 
@@ -385,6 +421,8 @@ fn run() -> R<()> {
             clear_after,
         } => cmd_show(&p, query, reveal, copy, clear_after),
         Cmd::Rm { query } => cmd_rm(&p, query),
+        Cmd::Import { file } => cmd_import(&p, file),
+        Cmd::BridgeRequest { json } => cmd_bridge_request(&p, json),
         Cmd::Passwd => cmd_passwd(&p),
         Cmd::Gen { length } => {
             println!("{}", generator::generate(length)?.as_str());

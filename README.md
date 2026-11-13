@@ -85,6 +85,18 @@
 | 2台目のパソコンで使う | **既存の保管庫に参加** → 同じ保存先を選び、Secret Key とアカウントパスワードを入力 |
 | 席を離れる | 右上の **🔒**。5分間操作がないと自動でロックされます |
 
+### 🧩 ブラウザで自動入力する（拡張機能）
+
+1Password のように、ログイン画面で呼び出して入力し、ログイン後に保存できます（アプリ 0.2.0 以降）。
+
+1. **拡張機能を入れる**：Chrome で `chrome://extensions` を開き、**デベロッパー モード** をオンにして、**パッケージ化されていない拡張機能を読み込む** からこのリポジトリの [`extension`](extension) フォルダを選びます（Chrome ウェブストア版は準備中です）。
+2. **アプリと接続する**：2password アプリの **⚙ 設定 → ブラウザ拡張機能 → ブラウザと接続する** を押し、ブラウザを再起動します。
+3. **使う**：サイトにログインすると「保存しますか？」と確認します。次回からは、ID やパスワードの欄をクリックすると候補が出ます。
+
+1Password などからの移行は、アプリの **⚙ 設定 → 他のツールから取り込む** で CSV を読み込みます。
+
+👉 くわしくは **[ブラウザ拡張機能の使い方（docs/EXTENSION.md）](docs/EXTENSION.md)**
+
 困ったときの対処など、くわしくは **[インストールと使い方（docs/INSTALL.md）](docs/INSTALL.md)** を参照してください。インストーラーは、このリポジトリのソースコードから GitHub Actions が自動でビルドしたものです。[自分でビルド](#-デスクトップアプリをビルドする) することもできます。
 
 ---
@@ -114,6 +126,8 @@
 | 🔒 | **暗号化は端末の中だけ** | Google Drive に送られるのは暗号文だけ。Google にも、作者にも、中身は読めません |
 | 🕵️ | **改ざん・差し戻しを検知** | 1バイトの書き換えも、古い版への差し戻しも、ファイルの削除も検知して、端末の控えから復元します |
 | ☁️ | **最小限の権限** | Google Drive の権限は「このアプリが作ったファイルだけ」（`drive.file`）。ほかの書類には触れません |
+| 🧩 | **ブラウザで自動入力** | Chrome / Edge / Brave の拡張機能が、ログイン画面で候補を出し、ログイン後に「保存しますか？」と確認します。偽サイトには候補を出しません |
+| 📦 | **乗り換えやすい** | 1Password・Chrome・Edge・Bitwarden が書き出した CSV を、そのまま取り込めます |
 | 🖥️ | **CLI とデスクトップアプリ** | コマンド `2pw` と、Windows / macOS 用のアプリ（Tauri 2）。暗号のコードは共通です |
 | 🎓 | **学べる** | 設計書、図解スライド、攻撃デモ、解説ドキュメントつき。「なぜ安全か」を自分の手で確かめられます |
 
@@ -381,6 +395,8 @@ Google Drive 版を作る場合は、リポジトリの **Settings → Secrets a
 | ドキュメント | 内容 |
 |---|---|
 | 📥 [docs/INSTALL.md](docs/INSTALL.md) | 一般の方向けのインストールと使い方 |
+| 🧩 [docs/EXTENSION.md](docs/EXTENSION.md) | ブラウザ拡張機能の入れ方、1Password などからの移行、しくみと安全性 |
+| 🔏 [docs/PRIVACY.md](docs/PRIVACY.md) | プライバシーポリシー |
 | 📐 [2password-design-and-prompt.md](2password-design-and-prompt.md) | 設計書と脅威モデル |
 | 🎞️ [2password-handson.html](2password-handson.html) | 図解スライド（ブラウザで開く。暗号化と改ざん検知のライブデモつき） |
 | 🔧 [docs/course/02-google-oauth-setup.md](docs/course/02-google-oauth-setup.md) | Google Cloud で OAuth クライアントを作る |
@@ -432,11 +448,12 @@ crates/
     envelope.rs     .2pw 形式：XChaCha20-Poly1305、ヘッダを AAD で認証、4KiB 単位の詰め物
     account.rs      account.2pw：Vault Key を AUK で包む／パスワード変更
     vault.rs        項目モデル、削除の記録（墓石）つきマージ、差し戻し検知用の番号
-  vault-client/   保存先（同期フォルダ／Drive API）、キーチェーン、Emergency Kit、同期処理
+  vault-client/   保存先（同期フォルダ／Drive API）、キーチェーン、Emergency Kit、同期処理、拡張機能との連絡路、CSV の取り込み
   vault-cli/      2pw コマンドと攻撃デモ
 app/
   src-tauri/      デスクトップアプリの Rust 側（Tauri 2）
   ui/             画面（HTML / CSS / JavaScript）
+extension/        ブラウザ拡張機能（Chrome / Edge / Brave、Manifest V3）
 docs/             インストール手順と解説
 scripts/e2e.sh    2台の端末を模擬した結合テスト
 .github/workflows/installers.yml   Windows / macOS のインストーラーをビルド
@@ -539,7 +556,9 @@ OAuth 同意画面が「テスト中」のためです。Google Cloud で「本�
 - [x] デスクトップアプリ（Windows / macOS）
 - [ ] iOS / Android 版
 - [ ] 生体認証での解除
-- [ ] 共有（HPKE）、漏えいチェック、自動入力
+- [x] ブラウザ拡張機能（自動入力、ログイン後の保存、CSV の取り込み）
+- [ ] Chrome ウェブストアでの公開
+- [ ] 共有（HPKE）、漏えいチェック、ワンタイムパスワード（TOTP）
 - [ ] 第三者によるセキュリティレビュー
 
 ---
