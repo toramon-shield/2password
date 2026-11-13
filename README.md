@@ -13,7 +13,7 @@
 [![Windows 版をダウンロード](https://img.shields.io/badge/Windows_版をダウンロード-.exe-0078D4?style=for-the-badge)](https://github.com/toramon-shield/2password/releases/latest/download/2password-windows-x64-setup.exe)
 [![macOS 版をダウンロード](https://img.shields.io/badge/macOS_版をダウンロード-.dmg-000000?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/toramon-shield/2password/releases/latest/download/2password-macos-universal.dmg)
 
-<sub>Windows 10 / 11（64bit）・ macOS（Apple シリコン / Intel 共通）｜ [インストール手順](docs/INSTALL.md) ・ [すべてのリリース](https://github.com/toramon-shield/2password/releases/latest)</sub>
+<sub>Windows 10 / 11（64bit）・ macOS（Apple シリコン / Intel 共通）｜ [インストール後の使い方](#-インストールと使い方) ・ [すべてのリリース](https://github.com/toramon-shield/2password/releases/latest)</sub>
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-1.90%2B-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
@@ -22,9 +22,70 @@
 [![Status](https://img.shields.io/badge/Status-学習用・未監査-yellow)](#-セキュリティ)
 [![Toramon Shield](https://img.shields.io/badge/Toramon_Shield-日本の個人情報を守る-8A2BE2)](#-toramon-shield-について)
 
-[ダウンロード](#-アプリ版を使う) ・ [特長](#-特長) ・ [しくみ](#-しくみ) ・ [クイックスタート](#-クイックスタート) ・ [コマンド一覧](#-コマンド一覧) ・ [ドキュメント](#-ドキュメント) ・ [FAQ](#-よくある質問)
+[インストールと使い方](#-インストールと使い方) ・ [特長](#-特長) ・ [しくみ](#-しくみ) ・ [クイックスタート](#-クイックスタート) ・ [コマンド一覧](#-コマンド一覧) ・ [ドキュメント](#-ドキュメント) ・ [FAQ](#-よくある質問)
 
 </div>
+
+---
+
+## 📦 インストールと使い方
+
+プログラミングの知識は要りません。**ダウンロード → インストール → 最初の設定** の3ステップで使い始められます。
+
+### ステップ 1：ダウンロードする
+
+| OS | ダウンロード | 対応環境 |
+|---|---|---|
+| 🪟 **Windows** | [2password-windows-x64-setup.exe](https://github.com/toramon-shield/2password/releases/latest/download/2password-windows-x64-setup.exe) | Windows 10 / 11（64bit） |
+| 🍎 **macOS** | [2password-macos-universal.dmg](https://github.com/toramon-shield/2password/releases/latest/download/2password-macos-universal.dmg) | Apple シリコン / Intel 共通 |
+
+### ステップ 2：インストールする
+
+<details open>
+<summary><b>🪟 Windows の場合</b></summary>
+
+1. ダウンロードした `2password-windows-x64-setup.exe` をダブルクリックします。
+2. 「Windows によって PC が保護されました」と表示されたら、**詳細情報** → **実行** を押します。
+3. 画面の案内に従って **インストール** を押します（管理者権限は不要です）。
+4. スタートメニューまたはデスクトップの **2password** から起動します。
+
+</details>
+
+<details>
+<summary><b>🍎 Mac の場合</b></summary>
+
+1. ダウンロードした `2password-macos-universal.dmg` をダブルクリックします。
+2. 開いた画面で、**2password** のアイコンを **Applications（アプリケーション）** フォルダにドラッグします。
+3. 初回だけ、アプリケーションフォルダの 2password を **右クリック（control + クリック）→ 開く** → **開く** を押します。
+4. キーチェーンへのアクセス確認が出たら **常に許可** を選びます（Secret Key を Mac のキーチェーンに保存するためです）。
+
+</details>
+
+> [!NOTE]
+> 有料の電子署名をしていないため、初回起動時に OS が警告を出します。上の手順で開けます。
+> ダウンロードしたファイルが本物かどうかは、[リリースページ](https://github.com/toramon-shield/2password/releases/latest) の `SHA256SUMS.txt` で確かめられます。
+
+### ステップ 3：最初の設定をする
+
+1. アプリを起動して **新しく始める** を押します。
+2. **保存先** を選びます。Google ドライブ for デスクトップなどの **同期フォルダ** を指定すると、ほかのパソコンとも共有できます。
+3. **アカウントパスワード** を決めます。単語を4〜5個つなげた、長くて自分だけが覚えられるものにしてください。強度のバーが緑になれば使えます。
+4. **Secret Key** が表示されます。**Emergency Kit を開いて印刷する** を押し、印刷して施錠できる場所に保管します。
+
+> [!CAUTION]
+> アカウントパスワードと Emergency Kit の両方を失くすと、**誰にも復旧できません**（作者にも Google にも中身は読めないためです）。
+
+### 使ってみる
+
+| やりたいこと | 操作 |
+|---|---|
+| パスワードを登録する | **＋ 追加**。パスワード欄を空にすると、強いパスワードを自動で作ります |
+| パスワードを使う | 項目を選んで **コピー**。30秒後にクリップボードから自動で消えます |
+| パスワードを見る | **表示**（20秒後に自動で隠れます） |
+| 2台目のパソコンで使う | **既存の保管庫に参加** → 同じ保存先を選び、Secret Key とアカウントパスワードを入力 |
+| 席を離れる | 右上の **🔒**。5分間操作がないと自動でロックされます |
+
+困ったときの対処など、くわしくは **[インストールと使い方（docs/INSTALL.md）](docs/INSTALL.md)** を参照してください。インストーラーは、このリポジトリのソースコードから GitHub Actions が自動でビルドしたものです。[自分でビルド](#-デスクトップアプリをビルドする) することもできます。
 
 ---
 
@@ -104,25 +165,6 @@ flowchart TB
 ```
 
 もっと詳しい設計と脅威モデルは [設計書](2password-design-and-prompt.md) を、図解は [スライド](2password-handson.html)（ダウンロードしてブラウザで開く）を参照してください。
-
----
-
-## 📦 アプリ版を使う
-
-プログラミングをしない方は、インストーラーをダウンロードしてダブルクリックするだけで使えます。
-
-| OS | ダウンロード | 対応環境 |
-|---|---|---|
-| 🪟 **Windows** | [2password-windows-x64-setup.exe](https://github.com/toramon-shield/2password/releases/latest/download/2password-windows-x64-setup.exe) | Windows 10 / 11（64bit） |
-| 🍎 **macOS** | [2password-macos-universal.dmg](https://github.com/toramon-shield/2password/releases/latest/download/2password-macos-universal.dmg) | Apple シリコン / Intel 共通 |
-
-👉 **[インストールと使い方（docs/INSTALL.md）](docs/INSTALL.md)**
-
-> [!NOTE]
-> 有料の電子署名をしていないため、初回起動時に Windows の SmartScreen や macOS の Gatekeeper が警告を出します。開き方は [docs/INSTALL.md](docs/INSTALL.md) にあります。
-> ダウンロードしたファイルが本物かどうかは、[リリースページ](https://github.com/toramon-shield/2password/releases/latest) の `SHA256SUMS.txt` で確かめられます。
-
-配布しているインストーラーは、このリポジトリのソースコードから GitHub Actions が自動でビルドしたものです。[自分でビルド](#-デスクトップアプリをビルドする) することもできます。
 
 ---
 
