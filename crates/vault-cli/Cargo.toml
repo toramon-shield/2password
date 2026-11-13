@@ -1,0 +1,21 @@
+[package]
+name = "vault-cli"
+description = "2password command line client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "2pw"
+path = "src/main.rs"
+
+[dependencies]
+vault-core = { path = "../vault-core" }
+vault-client = { path = "../vault-client" }
+clap.workspace = true
+rpassword.workspace = true
+secrecy.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

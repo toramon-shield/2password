@@ -1,0 +1,7 @@
+# 改行コードを LF に統一する（Windows で clone しても bash スクリプトが動くように）
+* text=auto eol=lf
+
+# バイナリ
+*.png binary
+*.ico binary
+*.icns binary

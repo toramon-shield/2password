@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "メインウィンドウに必要な最小限の権限（独自コマンドとイベントの受信のみ）",
+  "windows": ["main"],
+  "permissions": ["core:default"]
+}

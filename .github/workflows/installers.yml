@@ -1,0 +1,70 @@
+# Windows（.exe インストーラー）と macOS（.dmg）を GitHub 上でビルドする。
+#
+# 使い方：GitHub の Actions タブ → build-installers → Run workflow
+#        （または v0.1.0 のようなタグを push）
+# 出来上がったインストーラーは、実行結果ページの「Artifacts」からダウンロードできる。
+#
+# Google Drive 版を配布する場合は、リポジトリの Settings → Secrets and variables → Actions に
+# OAUTH_CLIENT_JSON（Google Cloud の「デスクトップ アプリ」の JSON の中身）を登録すると、アプリに埋め込まれる。
+name: build-installers
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: "--bundles nsis"
+            artifact: 2password-windows-installer
+            path: target/release/bundle/nsis/*.exe
+          - platform: macos-latest
+            args: "--target universal-apple-darwin --bundles dmg"
+            artifact: 2password-macos-dmg
+            path: target/universal-apple-darwin/release/bundle/dmg/*.dmg
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: OAuth クライアントを埋め込む（Secret がある場合だけ）
+        shell: bash
+        env:
+          OAUTH_CLIENT_JSON: ${{ secrets.OAUTH_CLIENT_JSON }}
+        run: |
+          if [ -n "$OAUTH_CLIENT_JSON" ]; then
+            printf '%s' "$OAUTH_CLIENT_JSON" > "$RUNNER_TEMP/oauth-client.json"
+            echo "TWOPW_EMBED_OAUTH_CLIENT=$RUNNER_TEMP/oauth-client.json" >> "$GITHUB_ENV"
+            echo "OAuth クライアントを埋め込みます"
+          else
+            echo "OAUTH_CLIENT_JSON がないため、同期フォルダ版としてビルドします"
+          fi
+
+      - name: 暗号コアのテスト
+        run: cargo test -p vault-core --release
+
+      - name: インストーラーをビルド
+        working-directory: app
+        run: npx --yes @tauri-apps/cli@2.12.4 build ${{ matrix.args }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.path }}
+          if-no-files-found: error

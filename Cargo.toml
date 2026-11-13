@@ -1,0 +1,50 @@
+[workspace]
+resolver = "3"
+members = ["crates/vault-core", "crates/vault-client", "crates/vault-cli", "app/src-tauri"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+rust-version = "1.90"
+
+[workspace.dependencies]
+# --- crypto (RustCrypto; versions checked on crates.io 2026-11-11) ---
+argon2 = { version = "0.6.0", default-features = false, features = ["alloc"] }
+chacha20poly1305 = { version = "0.11.0" }
+hkdf = "0.13.0"
+sha2 = "0.11.1"
+getrandom = "0.4.3"
+zeroize = { version = "1.9.1", features = ["derive"] }
+secrecy = "0.10.3"
+subtle = "2.6.1"
+unicode-normalization = "0.1.26"
+# --- data ---
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+base64 = "0.23.1"
+thiserror = "2.0.21"
+uuid = { version = "1.29.2", features = ["v4"] }
+# --- cli ---
+clap = { version = "4.6.7", features = ["derive"] }
+rpassword = "7.5.5"
+arboard = "3.7.0"
+zxcvbn = "3.1.1"
+keyring = "4.2.0"
+# HTTP: OpenSSL を使わず rustls。暗号プロバイダは ring（Windows で追加のビルドツールが不要）
+reqwest = { version = "0.13.5", default-features = false, features = ["blocking", "json", "form", "query", "rustls-no-provider", "charset", "http2"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12"] }
+# --- test ---
+proptest = "1.12.0"
+tempfile = "3.27.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3

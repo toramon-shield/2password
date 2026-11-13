@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"メインウィンドウに必要な最小限の権限（独自コマンドとイベントの受信のみ）","local":true,"windows":["main"],"permissions":["core:default"]}}

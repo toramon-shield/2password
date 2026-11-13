@@ -1,0 +1,52 @@
+# ===== ビルド成果物 =====
+target/
+node_modules/
+
+# ===== 秘密情報（絶対にコミットしない） =====
+# Google OAuth クライアント
+oauth-client.json
+client_secret*.json
+embedded_oauth_client.json
+credentials.json
+token.json
+tokens.json
+# 環境変数
+.env
+.env.*
+# 秘密鍵・署名用の資格情報
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# ===== 2password が作る個人データ =====
+# Emergency Kit（平文の Secret Key を含む）。CLI 既定名・GUI 既定名・e2e の出力名
+*emergency-kit*.html
+kit.html
+# 保管庫・競合コピー・書き込み途中の一時ファイル
+*.2pw
+*.2pw.merged*
+.2pw-*
+# TWOPW_HOME をリポジトリ内に向けたときの設定・控え
+/config.json
+/cache/
+/2password/
+.checkpoint.lock
+# e2e のログ（テスト用 Secret Key を含む）
+*.log
+
+# ===== 生成物のバックアップ =====
+*.bak
+*.orig
+*~
+
+# ===== OS・エディタ =====
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
