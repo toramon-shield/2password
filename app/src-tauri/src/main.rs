@@ -82,6 +82,15 @@ struct ItemSummary {
     username: String,
     urls: Vec<String>,
     updated: String,
+    has_passkey: bool,
+}
+
+/// 画面に出すパスキーの情報（秘密鍵は含めない）
+#[derive(Serialize)]
+struct PasskeyInfo {
+    rp_id: String,
+    user_name: String,
+    created: String,
 }
 
 #[derive(Serialize)]
@@ -93,6 +102,7 @@ struct ItemDetail {
     notes: String,
     updated: String,
     password_len: usize,
+    passkey: Option<PasskeyInfo>,
 }
 
 #[derive(Serialize)]
@@ -243,6 +253,7 @@ fn list_items(st: State<'_, St>) -> Res<Vec<ItemSummary>> {
                 username: i.username.clone(),
                 urls: i.urls.clone(),
                 updated: vault_client::fmt_time(i.updated_at),
+                has_passkey: i.passkey.is_some(),
             })
             .collect();
         v.sort_by_key(|a| a.title.to_lowercase());
@@ -262,8 +273,20 @@ fn get_item(st: State<'_, St>, id: String) -> Res<ItemDetail> {
             notes: i.notes.clone(),
             updated: vault_client::fmt_time(i.updated_at),
             password_len: i.password.chars().count(),
+            passkey: i.passkey.as_ref().map(|p| PasskeyInfo {
+                rp_id: p.rp_id.clone(),
+                user_name: p.user_name.clone(),
+                created: vault_client::fmt_time(p.created_at),
+            }),
         })
     })
+}
+
+/// 項目からパスキーを外す（サイト側の登録は残るので、サイトの設定でも削除する）
+#[tauri::command]
+async fn remove_passkey(st: State<'_, St>, id: String) -> Res<()> {
+    let st = st.inner().clone();
+    run(move || with_session(&st, |s| s.set_passkey(&id, None).map_err(err))).await
 }
 
 /// 利用者が「表示」を押したときだけ、パスワードを画面に渡す
@@ -624,6 +647,7 @@ fn main() {
             copy_field,
             save_item,
             delete_item,
+            remove_passkey,
             generate_password,
             sync_now,
             change_password,

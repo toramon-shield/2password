@@ -105,6 +105,21 @@ NEWS=$(br '{"type":"list","origin":"https://news.example"}' | grep -o '"id":"[0-
 check "拡張：ブラウザで保存した項目は、そのサイトで確認なしに使える" 'br "{\"type\":\"fill\",\"origin\":\"https://news.example\",\"id\":\"$NEWS\"}" | grep -q "News-Pass-1"'
 check "拡張：新しいログインを保存できる" 'O=$(printf "%s\n" "$PW2" | Bd show news.example --reveal); echo "$O" | grep -q "News-Pass-1" && echo "$O" | grep -q "https://news.example"'
 
+# パスキー（作成と署名はアプリの中で行い、拡張には結果だけを返す）
+OUT=$(br '{"type":"passkey_create","origin":"https://login.shop.example","rp_id":"shop.example","rp_name":"Shop Passkey","challenge":"Y2hhbGxlbmdl","user_id":"dXNlci0x","user_name":"erin"}')
+check "パスキー：作成結果に秘密鍵を含めない" 'echo "$OUT" | grep -q "attestation_object" && ! echo "$OUT" | grep -q -i -E "private|pkcs8"'
+PKID=$(br '{"type":"passkey_list","origin":"https://shop.example","rp_id":"shop.example"}' | grep -o '"id":"[0-9a-f]*"' | head -1 | cut -d'"' -f4)
+check "パスキー：一覧に鍵を含めない" '[ -n "$PKID" ] && ! br "{\"type\":\"passkey_list\",\"origin\":\"https://shop.example\",\"rp_id\":\"shop.example\"}" | grep -q -i -E "private|credential"'
+pkget() { br "{\"type\":\"passkey_get\",\"origin\":\"$1\",\"rp_id\":\"$2\",\"id\":\"$PKID\",\"challenge\":\"bG9naW4\"}"; }
+check "パスキー：作ったページでは署名を返す" 'pkget https://login.shop.example shop.example | grep -q "\"signature\""'
+check "パスキー：同じサイトでも初めてのホストでは、アプリの確認なしに署名しない" 'O=$(pkget https://shop.example shop.example); echo "$O" | grep -q "needs_approval" && ! echo "$O" | grep -q "signature"'
+check "パスキー：偽サイトが本物のサイト名を名乗っても署名しない" 'O=$(pkget https://shop.example.evil.test shop.example); echo "$O" | grep -q "no_match" && ! echo "$O" | grep -q "signature"'
+check "パスキー：偽サイトが自分のサイト名で求めても署名しない" 'pkget https://shop.example.evil.test shop.example.evil.test | grep -q "no_match"'
+check "パスキー：http のページでは使えない" 'pkget http://shop.example shop.example | grep -q "insecure"'
+check "パスキー：パスキーだけの項目は、パスワードの候補に出さない" '! br "{\"type\":\"list\",\"origin\":\"https://login.shop.example\"}" | grep -q "Shop Passkey"'
+check "パスキー：他の端末にも同期される" 'printf "%s\n" "$PW2" | Bd bridge-request "{\"type\":\"passkey_list\",\"origin\":\"https://shop.example\",\"rp_id\":\"shop.example\"}" | grep -q "erin"'
+check "パスキー：保存先のファイルにサイト名が平文で現れない" '! grep -r -q -a -E "shop\.example|erin" "$WORK/drive"'
+
 A forget > /dev/null; Bd forget > /dev/null
 echo "結果: 成功 $pass / 失敗 $fail"
 [ "$fail" -eq 0 ]

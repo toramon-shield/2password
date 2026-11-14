@@ -7,6 +7,33 @@ use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 /// 平文の詰め物単位。項目数がファイルサイズから推測されにくくなる。
 pub const PAD_BLOCK: u32 = 4096;
 
+/// パスキー（WebAuthn の資格情報）。秘密鍵は保管庫の暗号文の中にだけある。
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
+pub struct Passkey {
+    /// 資格情報 ID（base64url）
+    pub credential_id: String,
+    /// このパスキーを使えるサイトの範囲（例：`example.com`）
+    pub rp_id: String,
+    /// サイトが決めた利用者の識別子（base64url）
+    pub user_handle: String,
+    #[serde(default)]
+    pub user_name: String,
+    #[serde(default)]
+    pub user_display_name: String,
+    /// P-256 の秘密鍵（PKCS#8、base64url）
+    pub private_key: String,
+    pub created_at: u64,
+}
+
+/// Debug 出力に秘密鍵を出さない。
+impl core::fmt::Debug for Passkey {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Passkey")
+            .field("rp_id", &self.rp_id)
+            .finish_non_exhaustive()
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
 pub struct Item {
     pub id: String,
@@ -25,6 +52,9 @@ pub struct Item {
     /// 削除は墓石で表す（同期で復活しないように）
     #[serde(default)]
     pub deleted: bool,
+    /// このサイトのパスキー（ない項目では、ファイルにも書かない）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub passkey: Option<Passkey>,
 }
 
 /// Debug 出力に秘密（ユーザー名・パスワード・メモ）を出さない。
@@ -188,7 +218,10 @@ impl Vault {
 
 // A total order makes concurrent equal-time revisions converge. A tombstone wins
 // a timestamp tie; the remaining fields break live/live ties consistently.
-fn revision_order(item: &Item) -> (u64, bool, &str, &str, &[String], &str, &str, &str) {
+#[allow(clippy::type_complexity)]
+fn revision_order(
+    item: &Item,
+) -> (u64, bool, &str, &str, &[String], &str, &str, &str, Option<&str>) {
     (
         item.updated_at,
         item.deleted,
@@ -198,6 +231,7 @@ fn revision_order(item: &Item) -> (u64, bool, &str, &str, &[String], &str, &str,
         &item.username,
         &item.password,
         &item.notes,
+        item.passkey.as_ref().map(|p| p.credential_id.as_str()),
     )
 }
 
@@ -218,6 +252,7 @@ mod tests {
             notes: String::new(),
             updated_at: t,
             deleted: false,
+            passkey: None,
         }
     }
 

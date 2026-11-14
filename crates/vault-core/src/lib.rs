@@ -21,4 +21,4 @@ pub use error::{Error, Result};
 pub use kdf::{Auk, KdfParams};
 pub use secrecy::{ExposeSecret, SecretString};
 pub use secret_key::{AccountId, SecretKey};
-pub use vault::{Item, Vault};
+pub use vault::{Item, Passkey, Vault};

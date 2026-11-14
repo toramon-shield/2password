@@ -11,12 +11,14 @@
 //! - パスワードを返すのは、ページのオリジンが項目の URL に一致するときだけ（`links::url_matches_origin`）
 //! - 項目をそのサイトで初めて使うときは、アプリの画面で利用者に確認する（`Guard`）
 //! - 短い時間に要求が続いたら保管庫をロックする。http のページには返さない
+//! - パスキーの秘密鍵は返さない。署名はアプリの中で行い、結果だけを返す（`passkey`）
 //! - ブラウザは、マニフェストの `allowed_origins` に書いた拡張だけにホストの起動を許す
 //! - アプリとの接続には、設定フォルダの `bridge.json` にある合言葉が要る（同じ利用者のプロセスだけが読める）
 use crate::links::{
     Relation, has_idn_label, insecure_origin, item_host, page_origin, relation, url_matches_origin,
 };
-use crate::{ItemInput, R, Session, config};
+use crate::passkey::{self, rp_id_allowed};
+use crate::{ItemInput, R, Session, config, now_ms};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::io::{Read, Write};
@@ -95,6 +97,37 @@ pub enum Request {
         origin: String,
         id: String,
         password: String,
+    },
+    /// このサイトで使えるパスキーの一覧（鍵は含めない）
+    PasskeyList {
+        origin: String,
+        rp_id: String,
+        /// サイトが指定した資格情報 ID（空なら、このサイトのものすべて）
+        #[serde(default)]
+        allow: Vec<String>,
+    },
+    /// 新しいパスキーを作って保管庫に入れる
+    PasskeyCreate {
+        origin: String,
+        rp_id: String,
+        #[serde(default)]
+        rp_name: String,
+        challenge: String,
+        user_id: String,
+        #[serde(default)]
+        user_name: String,
+        #[serde(default)]
+        user_display_name: String,
+        /// すでに登録済みなら作らない資格情報 ID
+        #[serde(default)]
+        exclude: Vec<String>,
+    },
+    /// 利用者が選んだパスキーで、サイトのチャレンジに署名する（秘密鍵は返さない）
+    PasskeyGet {
+        origin: String,
+        rp_id: String,
+        id: String,
+        challenge: String,
     },
     /// 強いパスワードを作る（保存はしない）
     Generate,
@@ -178,6 +211,8 @@ pub struct PendingApproval {
     /// 入力先のページ（`https://example.com`）
     pub origin: String,
     pub host: String,
+    /// パスワードではなく、パスキーでのログイン
+    pub passkey: bool,
     #[serde(skip)]
     at: Option<Instant>,
 }
@@ -190,6 +225,7 @@ pub struct LogEntry {
     pub host: String,
     pub title: String,
     /// filled（入力した）/ asked（確認を求めた）/ allowed / denied / blocked（連続要求でロック）/ saved / updated
+    /// passkey_created（パスキーを作った）/ passkey_used（パスキーでログインした）
     pub event: &'static str,
 }
 
@@ -377,6 +413,57 @@ fn related_site(s: &Session, origin: &reqwest::Url) -> Option<Value> {
     same_site
 }
 
+/// 秘密（パスワード・パスキーの署名）の要求を 1 回数える。多すぎたらロックする
+fn burst_check(guard: &mut Guard, host: &str) -> Option<Outcome> {
+    if !guard.too_many_fills() {
+        return None;
+    }
+    guard.record("blocked", host, "");
+    guard.reset();
+    let mut o = Outcome::err(
+        "rate_limited",
+        "短い時間に要求が続いたため、2password をロックしました",
+    );
+    o.lock = true;
+    o.focus = true;
+    Some(o)
+}
+
+/// 項目をこのサイトで初めて使うなら、アプリの画面での確認を求める
+fn first_use_check(
+    guard: &mut Guard,
+    item: &Item,
+    origin: &reqwest::Url,
+    host: &str,
+    passkey: bool,
+) -> Option<Outcome> {
+    if guard.is_approved(&item.id, origin) {
+        return None;
+    }
+    guard.pending = Some(PendingApproval {
+        item_id: item.id.clone(),
+        title: item.title.clone(),
+        username: item.username.clone(),
+        origin: origin.origin().ascii_serialization(),
+        host: host.to_string(),
+        passkey,
+        at: Some(Instant::now()),
+    });
+    guard.record("asked", host, &item.title);
+    let mut o = Outcome::err(
+        "needs_approval",
+        "このサイトで使うのは初めてです。2password アプリで許可してから、もう一度選んでください",
+    );
+    o.activity = true;
+    o.focus = true;
+    o.approval = true;
+    Some(o)
+}
+
+fn same_b64(a: &str, b: &str) -> bool {
+    a.trim_end_matches('=') == b.trim_end_matches('=')
+}
+
 /// 拡張からの要求を処理する。`session` が None ならロック中。
 pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) -> Outcome {
     match &req {
@@ -409,7 +496,10 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
         | Request::Fill { origin, .. }
         | Request::Check { origin, .. }
         | Request::Save { origin, .. }
-        | Request::Update { origin, .. } => origin.as_str(),
+        | Request::Update { origin, .. }
+        | Request::PasskeyList { origin, .. }
+        | Request::PasskeyCreate { origin, .. }
+        | Request::PasskeyGet { origin, .. } => origin.as_str(),
         _ => unreachable!(),
     };
     let Some(origin) = page_origin(origin_str) else {
@@ -429,7 +519,7 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
             let mut items: Vec<_> = s
                 .vault
                 .items()
-                .filter(|i| matches(i, &origin))
+                .filter(|i| !i.password.is_empty() && matches(i, &origin))
                 .map(|i| json!({ "id": i.id, "title": i.title, "username": i.username }))
                 .collect();
             items.sort_by_key(|v| v["title"].as_str().unwrap_or_default().to_lowercase());
@@ -442,37 +532,13 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
             Outcome::ok(out)
         }
         Request::Fill { id, .. } => {
-            if guard.too_many_fills() {
-                guard.record("blocked", &host, "");
-                guard.reset();
-                let mut o = Outcome::err(
-                    "rate_limited",
-                    "短い時間に要求が続いたため、2password をロックしました",
-                );
-                o.lock = true;
-                o.focus = true;
-                return o;
+            if let Some(blocked) = burst_check(guard, &host) {
+                return blocked;
             }
             match s.get(id) {
-                Some(i) if matches(i, &origin) => {
-                    if !guard.is_approved(&i.id, &origin) {
-                        guard.pending = Some(PendingApproval {
-                            item_id: i.id.clone(),
-                            title: i.title.clone(),
-                            username: i.username.clone(),
-                            origin: origin.origin().ascii_serialization(),
-                            host: host.clone(),
-                            at: Some(Instant::now()),
-                        });
-                        guard.record("asked", &host, &i.title);
-                        let mut o = Outcome::err(
-                            "needs_approval",
-                            "このサイトで使うのは初めてです。2password アプリで許可してから、もう一度選んでください",
-                        );
-                        o.activity = true;
-                        o.focus = true;
-                        o.approval = true;
-                        return o;
+                Some(i) if !i.password.is_empty() && matches(i, &origin) => {
+                    if let Some(ask) = first_use_check(guard, i, &origin, &host, false) {
+                        return ask;
                     }
                     guard.record("filled", &host, &i.title);
                     let mut o =
@@ -482,6 +548,142 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
                 }
                 // 項目があっても、URL が一致しないページには返さない（偽サイト対策）
                 _ => Outcome::err("no_match", "このサイトに一致する項目がありません"),
+            }
+        }
+        Request::PasskeyList { rp_id, allow, .. } => {
+            if !rp_id_allowed(rp_id, &origin) {
+                return Outcome::err("bad_rp", "このページでは、このサイト名のパスキーを使えません");
+            }
+            let mut items: Vec<_> = s
+                .vault
+                .items()
+                .filter_map(|i| {
+                    let p = i.passkey.as_ref()?;
+                    let wanted = allow.is_empty()
+                        || allow.iter().any(|a| same_b64(a, &p.credential_id));
+                    (p.rp_id == *rp_id && wanted).then(|| {
+                        let name = if p.user_name.is_empty() { &i.username } else { &p.user_name };
+                        json!({ "id": i.id, "title": i.title, "username": name })
+                    })
+                })
+                .collect();
+            items.sort_by_key(|v| v["title"].as_str().unwrap_or_default().to_lowercase());
+            Outcome::ok(json!({ "items": items }))
+        }
+        Request::PasskeyCreate {
+            rp_id,
+            rp_name,
+            challenge,
+            user_id,
+            user_name,
+            user_display_name,
+            exclude,
+            ..
+        } => {
+            if too_long(&[rp_id, rp_name, user_id, user_name, user_display_name]) {
+                return Outcome::err("bad_request", "保存できない内容です");
+            }
+            // サイトが「登録済みなら作らない」と指定したパスキーを、すでに持っている
+            let exists = s.vault.items().any(|i| {
+                i.passkey.as_ref().is_some_and(|p| {
+                    p.rp_id == *rp_id && exclude.iter().any(|e| same_b64(e, &p.credential_id))
+                })
+            });
+            if exists {
+                return Outcome::err("exists", "このサイトのパスキーは、すでに保存されています");
+            }
+            let user = passkey::NewUser {
+                handle: user_id,
+                name: user_name,
+                display_name: user_display_name,
+            };
+            let (pk, reg) = match passkey::create(rp_id, &origin, challenge, &user, now_ms()) {
+                Ok(v) => v,
+                Err(e) => return Outcome::err("bad_request", &e.to_string()),
+            };
+            // 同じサイト・同じユーザー名の項目があれば、そこに付ける。なければ新しい項目にする
+            let existing = s
+                .vault
+                .items()
+                .find(|i| {
+                    i.passkey.is_none()
+                        && !user_name.is_empty()
+                        && i.username == *user_name
+                        && matches(i, &origin)
+                })
+                .map(|i| (i.id.clone(), i.title.clone()));
+            let saved = match existing {
+                Some((id, title)) => s.set_passkey(&id, Some(pk)).map(|()| (id, title)),
+                None => {
+                    let bare = origin.host_str().unwrap_or_default();
+                    let title = if rp_name.trim().is_empty() {
+                        bare.strip_prefix("www.").unwrap_or(bare).to_string()
+                    } else {
+                        rp_name.trim().to_string()
+                    };
+                    s.add_passkey_item(
+                        title.clone(),
+                        origin.origin().ascii_serialization(),
+                        user_name.clone(),
+                        pk,
+                    )
+                    .map(|id| (id, title))
+                }
+            };
+            match saved {
+                Ok((id, title)) => {
+                    // 利用者がこのページで作ったものなので、このサイトでの利用は確認済みとする
+                    guard.approve(&id, &origin);
+                    guard.record("passkey_created", &host, &title);
+                    let mut o = Outcome::ok(json!({
+                        "id": id,
+                        "credential_id": reg.credential_id,
+                        "client_data_json": reg.client_data_json,
+                        "attestation_object": reg.attestation_object,
+                        "authenticator_data": reg.authenticator_data,
+                        "public_key": reg.public_key,
+                    }));
+                    o.activity = true;
+                    o.changed = true;
+                    o
+                }
+                Err(e) => Outcome::err("failed", &e.to_string()),
+            }
+        }
+        Request::PasskeyGet {
+            rp_id,
+            id,
+            challenge,
+            ..
+        } => {
+            if let Some(blocked) = burst_check(guard, &host) {
+                return blocked;
+            }
+            let Some((item, pk)) = s
+                .get(id)
+                .and_then(|i| i.passkey.as_ref().map(|p| (i, p)))
+                .filter(|(_, p)| p.rp_id == *rp_id && rp_id_allowed(rp_id, &origin))
+            else {
+                // 作ったときと違うサイトには署名しない（偽サイト対策）
+                return Outcome::err("no_match", "このサイトで使えるパスキーがありません");
+            };
+            if let Some(ask) = first_use_check(guard, item, &origin, &host, true) {
+                return ask;
+            }
+            match passkey::assert(pk, rp_id, &origin, challenge) {
+                Ok(a) => {
+                    guard.record("passkey_used", &host, &item.title);
+                    let mut o = Outcome::ok(json!({
+                        "credential_id": a.credential_id,
+                        "client_data_json": a.client_data_json,
+                        "authenticator_data": a.authenticator_data,
+                        "signature": a.signature,
+                        "user_handle": a.user_handle,
+                    }));
+                    o.activity = true;
+                    o
+                }
+                Err(e) => Outcome::err("bad_request", &e.to_string()),
             }
         }
         Request::Check {
@@ -968,6 +1170,7 @@ mod tests {
             username: "alice".into(),
             origin: "https://example.com".into(),
             host: "example.com".into(),
+            passkey: false,
             at: Some(Instant::now()),
         });
         assert_eq!(g.resolve(true).unwrap().title, "Example");
@@ -995,6 +1198,7 @@ mod tests {
             username: String::new(),
             origin: "https://example.com".into(),
             host: "example.com".into(),
+            passkey: false,
             at,
         };
         let mut g = Guard::in_memory();

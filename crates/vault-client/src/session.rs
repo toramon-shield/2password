@@ -650,6 +650,7 @@ impl Session {
             notes: input.notes,
             updated_at: now_ms(),
             deleted: false,
+            passkey: None,
         });
         self.save()?;
         Ok(id)
@@ -681,6 +682,7 @@ impl Session {
                 notes: it.notes,
                 updated_at: now_ms(),
                 deleted: false,
+                passkey: None,
             });
             added += 1;
         }
@@ -707,7 +709,43 @@ impl Session {
             notes: input.notes,
             updated_at: next_item_time(old.updated_at)?,
             deleted: false,
+            passkey: old.passkey.clone(),
         });
+        self.save()?;
+        Ok(())
+    }
+
+    /// パスキーだけの項目を新しく作る（パスワードは空）。
+    pub fn add_passkey_item(
+        &mut self,
+        title: String,
+        url: String,
+        username: String,
+        passkey: vault_core::Passkey,
+    ) -> R<String> {
+        let id = new_id()?;
+        self.vault.upsert(Item {
+            id: id.clone(),
+            kind: "login".into(),
+            title,
+            urls: vec![url],
+            username,
+            password: String::new(),
+            notes: String::new(),
+            updated_at: now_ms(),
+            deleted: false,
+            passkey: Some(passkey),
+        });
+        self.save()?;
+        Ok(id)
+    }
+
+    /// 既存の項目にパスキーを付ける（None なら外す）。
+    pub fn set_passkey(&mut self, id: &str, passkey: Option<vault_core::Passkey>) -> R<()> {
+        let mut item = self.get(id).ok_or("項目が見つかりません")?.clone();
+        item.passkey = passkey;
+        item.updated_at = next_item_time(item.updated_at)?;
+        self.vault.upsert(item);
         self.save()?;
         Ok(())
     }
@@ -1073,6 +1111,7 @@ mod tests {
             notes: String::new(),
             updated_at: time,
             deleted: false,
+            passkey: None,
         }
     }
 

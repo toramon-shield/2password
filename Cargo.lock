@@ -5110,7 +5110,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "twopassword-app"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "secrecy",
  "serde",
@@ -5248,7 +5248,7 @@ dependencies = [
 
 [[package]]
 name = "vault-cli"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "clap",
  "rpassword",
@@ -5262,12 +5262,13 @@ dependencies = [
 
 [[package]]
 name = "vault-client"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "arboard",
  "base64 0.23.1",
  "keyring",
  "reqwest",
+ "ring",
  "rustls",
  "secrecy",
  "serde",
@@ -5282,7 +5283,7 @@ dependencies = [
 
 [[package]]
 name = "vault-core"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "argon2",
  "base64 0.23.1",

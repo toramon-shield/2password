@@ -3,6 +3,7 @@
 // - ログイン欄にフォーカスが当たったら、このサイトに一致する項目を候補として出す
 // - 利用者が候補をクリックしたときだけ、ユーザー名とパスワードを入力する（自動では入力しない）
 // - ログインや登録の送信を見つけたら、次の画面で「保存しますか？」と確認する
+// - サイトがパスキーを作る・使うときは、2password を保管場所として選べるようにする
 // - 表示する部品は closed な Shadow DOM の中に作り、ページのスクリプトから読めないようにする
 (() => {
   'use strict';
@@ -358,6 +359,125 @@
     box.querySelector('p').style.whiteSpace = 'pre-line';
     root.append(box);
   }
+
+  // ---------------- パスキー ----------------
+  //
+  // ページ側（inpage.js）が navigator.credentials の呼び出しを知らせてくる。
+  // ここで利用者に選んでもらい、選ばれたときだけデスクトップアプリに署名を頼む。
+  // ページのスクリプトがこの知らせを偽造しても、出るのは同じ確認の画面で、
+  // 署名に入るサイト名はブラウザが教えるものなので、ほかのサイトの署名は作れない。
+
+  const PK_TAG = '__2password_passkey__';
+  const pkSeen = new Set();
+  let pkPrompt = null; // { host, id }
+
+  const pkReply = (id, result) => postMessage({ [PK_TAG]: 'reply', id, result }, location.origin);
+  function pkClose() {
+    if (pkPrompt) { pkPrompt.host.remove(); pkPrompt = null; }
+  }
+  /** いま出している確認を「ブラウザに任せる」で終える */
+  function pkGiveUp() {
+    if (!pkPrompt) return;
+    const { id } = pkPrompt;
+    pkClose();
+    pkReply(id, { action: 'native' });
+  }
+
+  /** 確認の画面を出す。サイトが開いているダイアログより手前に出す */
+  function pkShow(id, title, text, rows, buttons) {
+    if (pkPrompt && pkPrompt.id !== id) pkGiveUp();
+    pkClose();
+    const { host, root } = makeLayer();
+    pkPrompt = { host, id };
+    try { host.popover = 'manual'; host.showPopover(); } catch { /* 古いブラウザでは通常の重ね順で出す */ }
+    const box = el('div', 'box banner');
+    const h = el('h1');
+    h.append(el('span', 'logo', '2P'), el('span', '', title));
+    const p = el('p', '', text);
+    p.style.whiteSpace = 'pre-line';
+    const row = el('div', 'row');
+    row.append(...buttons);
+    box.append(h, p, ...rows, row);
+    root.append(box);
+  }
+  const pkButton = (cls, label, onClick) => {
+    const b = button(cls, onClick);
+    b.textContent = label;
+    return b;
+  };
+  const pkOther = id => pkButton('btn', 'ほかの方法を使う', () => { pkClose(); pkReply(id, { action: 'native' }); });
+
+  /** ロック中：アプリを開いてもらい、解除されたら続きを行う */
+  function pkLocked(id, retry) {
+    const open = pkButton('btn primary', 'アプリを開く', async () => {
+      open.textContent = '解除を待っています…';
+      send({ type: 'focus' });
+      for (let i = 0; i < 60; i++) {
+        await new Promise(r => setTimeout(r, 1500));
+        if (!pkPrompt || pkPrompt.id !== id) return;
+        const st = await send({ type: 'status' });
+        if (st.ok && !st.locked) return retry();
+      }
+      pkGiveUp();
+    });
+    pkShow(id, '2password はロック中です', 'パスキーに 2password を使うには、アプリでロックを解除してください。', [], [pkOther(id), open]);
+  }
+
+  async function pkCreate(id, d) {
+    const st = await send({ type: 'status' });
+    if (!st.ok || !st.configured) return pkReply(id, { action: 'native' });
+    if (st.locked) return pkLocked(id, () => pkCreate(id, d));
+    const save = pkButton('btn primary', '2password に保存', async () => {
+      save.textContent = '作成中…';
+      const res = await send({ type: 'passkey-create', data: d });
+      pkClose();
+      if (res.ok) return pkReply(id, { action: 'done', credential: res });
+      if (res.error === 'exists') return pkReply(id, { action: 'error', name: 'InvalidStateError', message: res.message });
+      explain(res);
+      if (res.error !== 'locked' && res.error !== 'rate_limited') showNotice('パスキーを保存できませんでした', res.message || 'ブラウザの方法に切り替えます。', true);
+      pkReply(id, { action: 'native' });
+    });
+    const who = d.user_name ? `${d.user_name}（${location.host}）` : location.host;
+    pkShow(id, 'パスキーを 2password に保存しますか？', `${who}\n保存すると、2password を入れたほかのパソコンでも使えます。`, [], [pkOther(id), save]);
+  }
+
+  async function pkGet(id, d) {
+    const res = await send({ type: 'passkey-list', rp_id: d.rp_id, allow: d.allow });
+    if (!res.ok && res.error === 'locked') return pkLocked(id, () => pkGet(id, d));
+    if (!res.ok || !res.items.length) return pkReply(id, { action: 'native' });
+    const rows = res.items.map(it => {
+      const b = button('item', async () => {
+        const got = await send({ type: 'passkey-get', rp_id: d.rp_id, id: it.id, challenge: d.challenge });
+        if (got.ok) { pkClose(); return pkReply(id, { action: 'done', credential: got }); }
+        explain(got);
+        // 初回の確認は、アプリで許可したあとにもう一度選べるよう、画面を残す
+        if (got.error === 'needs_approval') return;
+        pkClose();
+        pkReply(id, got.error === 'rate_limited'
+          ? { action: 'error', name: 'NotAllowedError', message: got.message }
+          : { action: 'native' });
+      });
+      b.append(el('b', '', it.title), el('span', '', it.username || '（ユーザー名なし）'));
+      return b;
+    });
+    pkShow(id, 'パスキーでログイン', `${location.host}\n使うアカウントを選んでください。`, rows, [pkOther(id)]);
+  }
+
+  addEventListener('message', e => {
+    const m = e.data;
+    if (e.source !== window || !m || typeof m.id !== 'string' || m.id.length > 100) return;
+    if (m[PK_TAG] === 'cancel') {
+      if (pkPrompt && pkPrompt.id === m.id) pkClose();
+      return;
+    }
+    if (m[PK_TAG] !== 'request') return;
+    // 受け取ったことを知らせる（ページ側は、これが届くまでくり返し送ってくる）
+    postMessage({ [PK_TAG]: 'reply', id: m.id, ack: true }, location.origin);
+    if (pkSeen.has(m.id)) return;
+    pkSeen.add(m.id);
+    const d = m.data && typeof m.data === 'object' ? m.data : {};
+    (m.kind === 'create' ? pkCreate : pkGet)(m.id, d).catch(() => pkReply(m.id, { action: 'native' }));
+  });
 
   // ログイン後に画面が切り替わった場合は、次のページで確認を出す
   showPending();

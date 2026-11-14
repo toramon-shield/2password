@@ -1,0 +1,12 @@
+{
+  "name": "2password-passkey-e2e",
+  "private": true,
+  "description": "パスキーの通し確認（ヘッドレス Chrome + 拡張機能のスクリプト + 2pw + 独立した検証ライブラリ）",
+  "scripts": {
+    "test": "node test.cjs ../../extension ../../target/release/2pw"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.0.0",
+    "puppeteer-core": "^23.0.0"
+  }
+}

@@ -17,6 +17,7 @@ pub mod drive;
 pub mod import;
 pub mod kit;
 pub mod links;
+pub mod passkey;
 pub mod session;
 pub mod store;
 

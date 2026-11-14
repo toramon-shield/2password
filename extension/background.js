@@ -26,6 +26,9 @@ function senderOrigin(sender) {
   return origin && /^https?:\/\//.test(origin) ? origin : null;
 }
 
+const text = v => (typeof v === 'string' ? v.slice(0, 2048) : '');
+const texts = v => (Array.isArray(v) ? v.slice(0, 64).map(text) : []);
+
 const pendingKey = tabId => 'pending:' + tabId;
 const userKey = tabId => 'user:' + tabId;
 
@@ -73,6 +76,28 @@ async function onContentMessage(msg, sender) {
       return native({ type: 'generate' });
     case 'focus':
       return native({ type: 'focus' });
+    case 'status':
+      return native({ type: 'status' });
+
+    // パスキー：鍵と署名はアプリの中。ここは、ブラウザが教えるサイト名を添えて取り次ぐだけ
+    case 'passkey-list':
+      return native({ type: 'passkey_list', origin, rp_id: text(msg.rp_id), allow: texts(msg.allow) });
+    case 'passkey-create': {
+      const d = msg.data && typeof msg.data === 'object' ? msg.data : {};
+      return native({
+        type: 'passkey_create',
+        origin,
+        rp_id: text(d.rp_id),
+        rp_name: text(d.rp_name),
+        challenge: text(d.challenge),
+        user_id: text(d.user_id),
+        user_name: text(d.user_name),
+        user_display_name: text(d.user_display_name),
+        exclude: texts(d.exclude),
+      });
+    }
+    case 'passkey-get':
+      return native({ type: 'passkey_get', origin, rp_id: text(msg.rp_id), id: text(msg.id), challenge: text(msg.challenge) });
 
     // 複数ページに分かれたログイン（ID → パスワード）のために、直前のユーザー名を覚えておく
     case 'username':

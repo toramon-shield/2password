@@ -212,7 +212,7 @@ function renderList() {
   for (const i of shown) {
     const b = document.createElement('button');
     b.className = i.id === selected ? 'sel' : '';
-    const t = document.createElement('b'); t.textContent = i.title;
+    const t = document.createElement('b'); t.textContent = (i.has_passkey ? '🔑 ' : '') + i.title;
     const s = document.createElement('span'); s.textContent = i.username || i.urls[0] || '';
     b.append(t, s);
     b.addEventListener('click', () => selectItem(i.id));
@@ -269,7 +269,15 @@ async function selectItem(id) {
     reveal.textContent = '隠す'; shown = true;
     setTimeout(() => { if (shown && selected === id) reveal.click(); }, 20000);
   });
-  d.append(field('パスワード', pw, reveal, btn('コピー', 'primary', () => copyField(id, 'password'))));
+  if (it.password_len) d.append(field('パスワード', pw, reveal, btn('コピー', 'primary', () => copyField(id, 'password'))));
+  if (it.passkey) {
+    d.append(field('パスキー', span(`🔑 ${it.passkey.rp_id}（${it.passkey.user_name || 'ユーザー名なし'}）　作成: ${it.passkey.created}`),
+      btn('外す', 'secondary', async () => {
+        if (!await confirmBox('パスキーを外しますか？', `「${it.title}」のパスキーを 2password から消します。サイト側の登録は残るので、サイトの設定画面でも削除してください。`, '外す')) return;
+        try { await invoke('remove_passkey', { id }); toast('パスキーを外しました'); await refreshList(); selectItem(id); }
+        catch (e) { toast(String(e), true); }
+      })));
+  }
   for (const u of it.urls) {
     const a = document.createElement('a'); a.textContent = u;
     a.addEventListener('click', () => invoke('open_url', { url: u }).catch(e => toast(String(e), true)));
@@ -411,7 +419,7 @@ async function refreshBrowser() {
   $('#b-browser-uninstall').hidden = !b.installed;
   $('#br-ids').textContent = '登録済みの ID: ' + [b.dev_extension_id + '（開発版）', ...b.extra_extension_ids].join('、');
   $('#br-approved').textContent = `確認済み: ${b.approved_sites} 件`;
-  const events = { filled: '入力', asked: '確認を表示', allowed: '許可', denied: '拒否', blocked: '連続要求のためロック', saved: '保存', updated: '更新' };
+  const events = { filled: '入力', asked: '確認を表示', allowed: '許可', denied: '拒否', blocked: '連続要求のためロック', saved: '保存', updated: '更新', passkey_created: 'パスキーを作成', passkey_used: 'パスキーでログイン' };
   const log = await invoke('browser_log');
   $('#br-log').replaceChildren(...(log.length ? log : [null]).map(e => {
     const li = document.createElement('li');
@@ -434,6 +442,7 @@ async function askApproval() {
   const p = await invoke('browser_pending');
   if (!p || $('#v-main').hidden) return;
   approving = p;
+  $('#ap-what').textContent = p.passkey ? 'このサイトでパスキーを使いますか？' : 'このサイトでパスワードを使いますか？';
   $('#ap-host').textContent = p.host;
   $('#ap-title').textContent = p.title;
   $('#ap-user').textContent = p.username || '（なし）';
