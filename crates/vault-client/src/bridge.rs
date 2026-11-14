@@ -129,6 +129,8 @@ pub enum Request {
         id: String,
         challenge: String,
     },
+    /// 利用者が選んだ項目の、いまのワンタイムパスワード（設定キーは返さない）
+    Totp { origin: String, id: String },
     /// 強いパスワードを作る（保存はしない）
     Generate,
     /// アプリの画面を前面に出す（ロック解除のため）
@@ -225,7 +227,7 @@ pub struct LogEntry {
     pub host: String,
     pub title: String,
     /// filled（入力した）/ asked（確認を求めた）/ allowed / denied / blocked（連続要求でロック）/ saved / updated
-    /// passkey_created（パスキーを作った）/ passkey_used（パスキーでログインした）
+    /// passkey_created（パスキーを作った）/ passkey_used（パスキーでログインした）/ totp（ワンタイムパスワードを入力した）
     pub event: &'static str,
 }
 
@@ -499,7 +501,8 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
         | Request::Update { origin, .. }
         | Request::PasskeyList { origin, .. }
         | Request::PasskeyCreate { origin, .. }
-        | Request::PasskeyGet { origin, .. } => origin.as_str(),
+        | Request::PasskeyGet { origin, .. }
+        | Request::Totp { origin, .. } => origin.as_str(),
         _ => unreachable!(),
     };
     let Some(origin) = page_origin(origin_str) else {
@@ -520,7 +523,9 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
                 .vault
                 .items()
                 .filter(|i| !i.password.is_empty() && matches(i, &origin))
-                .map(|i| json!({ "id": i.id, "title": i.title, "username": i.username }))
+                .map(|i| {
+                    json!({ "id": i.id, "title": i.title, "username": i.username, "totp": !i.totp.is_empty() })
+                })
                 .collect();
             items.sort_by_key(|v| v["title"].as_str().unwrap_or_default().to_lowercase());
             let mut out = json!({ "items": items, "idn": has_idn_label(&origin) });
@@ -541,12 +546,38 @@ pub fn handle(req: Request, session: Option<&mut Session>, guard: &mut Guard) ->
                         return ask;
                     }
                     guard.record("filled", &host, &i.title);
-                    let mut o =
-                        Outcome::ok(json!({ "username": i.username, "password": i.password }));
+                    let mut o = Outcome::ok(json!({
+                        "username": i.username,
+                        "password": i.password,
+                        "totp": !i.totp.is_empty(),
+                    }));
                     o.activity = true;
                     o
                 }
                 // 項目があっても、URL が一致しないページには返さない（偽サイト対策）
+                _ => Outcome::err("no_match", "このサイトに一致する項目がありません"),
+            }
+        }
+        Request::Totp { id, .. } => {
+            if let Some(blocked) = burst_check(guard, &host) {
+                return blocked;
+            }
+            match s.get(id) {
+                Some(i) if !i.totp.is_empty() && matches(i, &origin) => {
+                    if let Some(ask) = first_use_check(guard, i, &origin, &host, false) {
+                        return ask;
+                    }
+                    match crate::totp::current(&i.totp) {
+                        Ok(c) => {
+                            guard.record("totp", &host, &i.title);
+                            let mut o = Outcome::ok(json!({ "code": c.code, "remaining": c.remaining }));
+                            o.activity = true;
+                            o
+                        }
+                        Err(e) => Outcome::err("failed", &e.to_string()),
+                    }
+                }
+                // 保存したときと違うサイトには、コードも返さない（偽サイト対策）
                 _ => Outcome::err("no_match", "このサイトに一致する項目がありません"),
             }
         }

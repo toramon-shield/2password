@@ -20,6 +20,7 @@ pub mod links;
 pub mod passkey;
 pub mod session;
 pub mod store;
+pub mod totp;
 
 pub use session::*;
 

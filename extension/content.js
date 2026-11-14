@@ -3,6 +3,7 @@
 // - ログイン欄にフォーカスが当たったら、このサイトに一致する項目を候補として出す
 // - 利用者が候補をクリックしたときだけ、ユーザー名とパスワードを入力する（自動では入力しない）
 // - ログインや登録の送信を見つけたら、次の画面で「保存しますか？」と確認する
+// - 項目を選んでログインしたあとに認証コードの欄が出たら、ワンタイムパスワードも入力する
 // - サイトがパスキーを作る・使うときは、2password を保管場所として選べるようにする
 // - 表示する部品は closed な Shadow DOM の中に作り、ページのスクリプトから読めないようにする
 (() => {
@@ -193,8 +194,11 @@
         const b = button('item', async () => {
           closeMenu();
           const got = await send({ type: 'fill', id: it.id });
-          if (got.ok) fill(targets, got.username, got.password);
-          else { cache = null; explain(got); }
+          if (got.ok) {
+            fill(targets, got.username, got.password);
+            // 2 段階認証のコードを持つ項目なら、このあと出る認証コードの欄にも入力する
+            if (got.totp) { otpArmed = true; setTimeout(tryOtp, 600); }
+          } else { cache = null; explain(got); }
         });
         b.append(el('b', '', it.title), el('span', '', it.username || '（ユーザー名なし）'));
         rows.push(b);
@@ -238,8 +242,11 @@
       b.append(el('b', '', 'アプリを開いてロックを解除'), el('span', '', '解除したら、もう一度この欄をクリックしてください'));
       rows.push(b);
     }
-    if (!rows.length) return;
+    if (rows.length) showMenu(field, title, rows);
+  }
 
+  function showMenu(field, title, rows) {
+    closeMenu();
     const { host, root } = makeLayer();
     const box = el('div', 'box');
     const r = field.getBoundingClientRect();
@@ -255,7 +262,9 @@
 
   document.addEventListener('focusin', e => {
     const t = e.target;
-    if (t instanceof HTMLInputElement && (isPassword(t) || isTextual(t))) openMenu(t);
+    if (!(t instanceof HTMLInputElement) || !(isPassword(t) || isTextual(t) || t.type === 'number')) return;
+    if (!targetsFor(t) && isOtp(t)) openOtpMenu(t);
+    else openMenu(t);
   }, true);
   document.addEventListener('focusout', e => {
     dismissed.delete(e.target);
@@ -267,7 +276,11 @@
   document.addEventListener('click', e => {
     // 一度閉じたあとでも、欄をクリックし直せば開く
     const t = e.target;
-    if (e.isTrusted && !menu && t instanceof HTMLInputElement && dismissed.has(t)) { dismissed.delete(t); openMenu(t); }
+    if (e.isTrusted && !menu && t instanceof HTMLInputElement && dismissed.has(t)) {
+      dismissed.delete(t);
+      if (!targetsFor(t) && isOtp(t)) openOtpMenu(t);
+      else openMenu(t);
+    }
   }, true);
   addEventListener('scroll', closeMenu, { capture: true, passive: true });
   addEventListener('resize', closeMenu, { passive: true });
@@ -280,6 +293,7 @@
     const targets = (active instanceof HTMLInputElement && targetsFor(active))
       || inputsIn(document).filter(isPassword).map(targetsFor)[0]
       || inputsIn(document).filter(looksLikeUsername).map(targetsFor).find(Boolean);
+    if (targets && msg.totp) { otpArmed = true; setTimeout(tryOtp, 600); }
     sendResponse(targets && fill(targets, msg.username, msg.password)
       ? { ok: true }
       : { ok: false, error: 'no_form', message: 'このページに入力欄が見つかりません' });
@@ -358,6 +372,75 @@
     }
     box.querySelector('p').style.whiteSpace = 'pre-line';
     root.append(box);
+  }
+
+  // ---------------- ワンタイムパスワード（2 段階認証のコード） ----------------
+  //
+  // 利用者が項目を選んでログインした直後（2 分以内）に、同じサイトで認証コードの欄が出たら、
+  // その項目のコードを入力する。コードはデスクトップアプリが作り、設定キーは拡張機能に渡らない。
+  // それ以外のときは、欄をクリックして項目を選んだときだけ入力する。
+
+  const OTP_HINT = /otp|totp|2fa|mfa|two.?factor|one.?time|verif|auth.?code|security.?code|passcode|認証コード|確認コード|ワンタイム|セキュリティコード/i;
+  function isOtp(el) {
+    if (!(el instanceof HTMLInputElement) || !visible(el)) return false;
+    if (!['text', 'tel', 'number', 'password', ''].includes(el.type || '')) return false;
+    const ac = (el.autocomplete || '').toLowerCase();
+    if (ac.includes('one-time-code')) return true;
+    if (ac.includes('password') || ac.includes('username') || ac === 'email') return false;
+    return OTP_HINT.test(`${el.name} ${el.id} ${el.placeholder} ${el.getAttribute('aria-label') || ''}`);
+  }
+  /** コードを入力する。1 文字ずつの欄が並んでいる画面にも対応する */
+  function fillOtp(field, code) {
+    const boxes = field.maxLength === 1 ? inputsIn(scopeOf(field)).filter(i => i.maxLength === 1) : [];
+    if (boxes.length >= code.length) [...code].forEach((ch, i) => setValue(boxes[i], ch));
+    else setValue(field, code);
+  }
+
+  const otpStart = Date.now();
+  let otpArmed = false; // このページで項目を選んで入力した
+  let otpAsked = false; // ページを開いたときの問い合わせを済ませた
+  let otpBusy = false;
+  async function tryOtp() {
+    if (otpBusy || !(otpArmed || (!otpAsked && Date.now() - otpStart < 120000))) return;
+    const field = inputsIn(document).find(isOtp);
+    if (!field || field.value) return;
+    otpBusy = true;
+    const res = await send({ type: 'otp-auto' });
+    otpBusy = false;
+    otpAsked = true;
+    otpArmed = false;
+    if (res.ok) {
+      if (!field.isConnected || field.value) return;
+      fillOtp(field, res.code);
+      showNotice('ワンタイムパスワードを入力しました', `2password が ${location.host} の認証コードを入力しました。`);
+    } else if (res.error !== 'none') {
+      explain(res);
+    }
+  }
+  let otpTimer = null;
+  new MutationObserver(() => {
+    if (!otpArmed && otpAsked) return;
+    clearTimeout(otpTimer);
+    otpTimer = setTimeout(tryOtp, 400);
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  setTimeout(tryOtp, 300);
+
+  /** 認証コードの欄をクリックしたとき：コードを持つ項目を候補に出す */
+  async function openOtpMenu(field) {
+    if (dismissed.has(field)) return;
+    const res = await listItems();
+    if (document.activeElement !== field || !res.ok) return;
+    const rows = res.items.filter(it => it.totp).map(it => {
+      const b = button('item', async () => {
+        closeMenu();
+        const got = await send({ type: 'otp', id: it.id });
+        if (got.ok) fillOtp(field, got.code);
+        else { cache = null; explain(got); }
+      });
+      b.append(el('b', '', 'ワンタイムパスワードを入力'), el('span', '', `${it.title}　${it.username || ''}`));
+      return b;
+    });
+    if (rows.length) showMenu(field, '2password', rows);
   }
 
   // ---------------- パスキー ----------------

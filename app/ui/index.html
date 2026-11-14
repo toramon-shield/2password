@@ -133,6 +133,8 @@
       </span>
     </label>
     <label>URL（1行に1つ） <textarea name="urls" rows="2"></textarea></label>
+    <label>ワンタイムパスワード（2 段階認証）の設定キー <input name="totp" type="password" autocomplete="off" spellcheck="false" placeholder="なければ空のまま"></label>
+    <p class="muted small">サイトの 2 段階認証の設定で、QR コードの近くに表示される英数字（「QR コードを読み取れない場合」「セットアップキー」など）を貼り付けます。<code>otpauth://</code> で始まる URL も使えます。</p>
     <p class="muted small">ブラウザの自動入力は、ここに書いたホスト名と同じページでだけ働きます。サブドメインでも使うときは <code>*.example.com</code> のように書きます。</p>
     <label>メモ <textarea name="notes" rows="3"></textarea></label>
     <p class="error" role="alert"></p>

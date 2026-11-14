@@ -251,6 +251,7 @@ async function copyField(id, field) {
   } catch (e) { toast(String(e), true); }
 }
 
+let totpTimer = null;
 async function selectItem(id) {
   selected = id;
   renderList();
@@ -270,6 +271,28 @@ async function selectItem(id) {
     setTimeout(() => { if (shown && selected === id) reveal.click(); }, 20000);
   });
   if (it.password_len) d.append(field('パスワード', pw, reveal, btn('コピー', 'primary', () => copyField(id, 'password'))));
+  clearInterval(totpTimer);
+  if (it.has_totp) {
+    const code = span('······', 'pw');
+    const left = span('', 'muted small');
+    const tick = async () => {
+      if (selected !== id || $('#v-main').hidden) return clearInterval(totpTimer);
+      try {
+        const t = await invoke('totp_code', { id });
+        code.textContent = t.code.replace(/(.{3})(?=.)/g, '$1 ');
+        left.textContent = `あと ${t.remaining} 秒`;
+      } catch (e) { clearInterval(totpTimer); left.textContent = String(e); }
+    };
+    tick();
+    totpTimer = setInterval(tick, 1000);
+    d.append(field('ワンタイムパスワード', code, left,
+      btn('コピー', 'primary', () => copyField(id, 'totp')),
+      btn('外す', 'secondary', async () => {
+        if (!await confirmBox('ワンタイムパスワードを外しますか？', `「${it.title}」の 2 段階認証の設定を 2password から消します。サイト側の 2 段階認証はそのまま残るので、ほかの認証アプリや回復コードがないとログインできなくなります。`, '外す')) return;
+        try { await invoke('set_totp', { id, value: '' }); toast('外しました'); selectItem(id); }
+        catch (e) { toast(String(e), true); }
+      })));
+  }
   if (it.passkey) {
     d.append(field('パスキー', span(`🔑 ${it.passkey.rp_id}（${it.passkey.user_name || 'ユーザー名なし'}）　作成: ${it.passkey.created}`),
       btn('外す', 'secondary', async () => {
@@ -307,6 +330,7 @@ function openEditor(it) {
   $('.error', fe).textContent = '';
   fe.password.type = 'password';
   fe.password.placeholder = it ? '空なら変更しない' : '空なら自動生成';
+  fe.totp.placeholder = it && it.has_totp ? '登録済み（変更するときだけ入力）' : 'なければ空のまま';
   if (it) {
     fe.title.value = it.title; fe.username.value = it.username;
     fe.urls.value = it.urls.join('\n'); fe.notes.value = it.notes;
@@ -315,7 +339,7 @@ function openEditor(it) {
   fe.title.focus();
 }
 $('#b-add').addEventListener('click', () => openEditor(null));
-$('#b-edit-cancel').addEventListener('click', () => { fe.password.value = ''; $('#d-edit').close(); });
+$('#b-edit-cancel').addEventListener('click', () => { fe.password.value = ''; fe.totp.value = ''; $('#d-edit').close(); });
 $('#b-gen').addEventListener('click', async () => {
   fe.password.value = await invoke('generate_password', { length: 24 });
   fe.password.type = 'text';
@@ -332,6 +356,12 @@ fe.addEventListener('submit', async e => {
   try {
     const id = await invoke('save_item', { id: editingId, form });
     fe.password.value = '';
+    const totp = fe.totp.value.trim();
+    fe.totp.value = '';
+    if (totp) {
+      try { await invoke('set_totp', { id, value: totp }); }
+      catch (err) { toast('項目は保存しましたが、ワンタイムパスワードは登録できませんでした: ' + err, true); }
+    }
     $('#d-edit').close();
     toast('暗号化して保存しました');
     selected = id;
@@ -419,7 +449,7 @@ async function refreshBrowser() {
   $('#b-browser-uninstall').hidden = !b.installed;
   $('#br-ids').textContent = '登録済みの ID: ' + [b.dev_extension_id + '（開発版）', ...b.extra_extension_ids].join('、');
   $('#br-approved').textContent = `確認済み: ${b.approved_sites} 件`;
-  const events = { filled: '入力', asked: '確認を表示', allowed: '許可', denied: '拒否', blocked: '連続要求のためロック', saved: '保存', updated: '更新', passkey_created: 'パスキーを作成', passkey_used: 'パスキーでログイン' };
+  const events = { filled: '入力', asked: '確認を表示', allowed: '許可', denied: '拒否', blocked: '連続要求のためロック', saved: '保存', updated: '更新', passkey_created: 'パスキーを作成', passkey_used: 'パスキーでログイン', totp: 'ワンタイムパスワードを入力' };
   const log = await invoke('browser_log');
   $('#br-log').replaceChildren(...(log.length ? log : [null]).map(e => {
     const li = document.createElement('li');

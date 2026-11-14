@@ -120,6 +120,21 @@ check "パスキー：パスキーだけの項目は、パスワードの候補�
 check "パスキー：他の端末にも同期される" 'printf "%s\n" "$PW2" | Bd bridge-request "{\"type\":\"passkey_list\",\"origin\":\"https://shop.example\",\"rp_id\":\"shop.example\"}" | grep -q "erin"'
 check "パスキー：保存先のファイルにサイト名が平文で現れない" '! grep -r -q -a -E "shop\.example|erin" "$WORK/drive"'
 
+# ワンタイムパスワード（2 段階認証）。設定キーは保管庫の中に置き、拡張にはその時刻のコードだけを返す
+printf '%s\n%s\n' "$PW2" 'jbsw y3dp ehpk 3pxp' | A totp "$SHOP" --set > /dev/null
+check "2FA：登録した項目から 6 桁のコードが出る" 'printf "%s\n" "$PW2" | A totp "$SHOP" | grep -q -E "^[0-9]{6}（あと [0-9]+ 秒）"'
+check "2FA：一致するサイトにはコードを返し、設定キーは返さない" 'O=$(br "{\"type\":\"totp\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\"}"); echo "$O" | grep -q -E "\"code\":\"[0-9]{6}\"" && ! echo "$O" | grep -q -i -E "JBSW|otpauth|secret"'
+check "2FA：偽サイトにはコードを返さない" 'O=$(br "{\"type\":\"totp\",\"origin\":\"https://shop.example.evil.test\",\"id\":\"$SHOP\"}"); echo "$O" | grep -q "no_match" && ! echo "$O" | grep -q "\"code\""'
+check "2FA：コードのない項目には返さない" 'br "{\"type\":\"totp\",\"origin\":\"https://news.example\",\"id\":\"$NEWS\"}" | grep -q "no_match"'
+check "2FA：一覧では、コードを持つ項目かどうかだけを知らせる" 'br "{\"type\":\"list\",\"origin\":\"https://shop.example\"}" | grep -q "\"totp\":true"'
+check "2FA：他の端末でもコードが出る" 'printf "%s\n" "$PW2" | Bd totp "$SHOP" | grep -q -E "^[0-9]{6}"'
+printf 'Title,Url,Username,Password,OTPAuth,Notes\nMail2FA,https://mail.example,frank,Mail-Pass-1,otpauth://totp/Mail:frank?secret=JBSWY3DPEHPK3PXP&issuer=Mail,\n' > "$WORK/export2.csv"
+printf '%s\n' "$PW2" | A import "$WORK/export2.csv" > /dev/null
+check "2FA：1Password 形式の CSV から設定を取り込める" 'printf "%s\n" "$PW2" | A totp Mail2FA | grep -q -E "^[0-9]{6}"'
+printf '%s\n' "$PW2" | A totp Mail2FA --clear > /dev/null
+check "2FA：登録を外すとコードは出ない" '! (printf "%s\n" "$PW2" | A totp Mail2FA > /dev/null 2>&1)'
+check "2FA：保存先のファイルに設定キーが平文で現れない" '! grep -r -q -a -i -E "JBSWY3DP|otpauth" "$WORK/drive"'
+
 A forget > /dev/null; Bd forget > /dev/null
 echo "結果: 成功 $pass / 失敗 $fail"
 [ "$fail" -eq 0 ]

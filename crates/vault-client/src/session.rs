@@ -651,6 +651,7 @@ impl Session {
             updated_at: now_ms(),
             deleted: false,
             passkey: None,
+            totp: String::new(),
         });
         self.save()?;
         Ok(id)
@@ -683,6 +684,7 @@ impl Session {
                 updated_at: now_ms(),
                 deleted: false,
                 passkey: None,
+                totp: it.totp.to_string(),
             });
             added += 1;
         }
@@ -710,6 +712,7 @@ impl Session {
             updated_at: next_item_time(old.updated_at)?,
             deleted: false,
             passkey: old.passkey.clone(),
+            totp: old.totp.clone(),
         });
         self.save()?;
         Ok(())
@@ -735,9 +738,24 @@ impl Session {
             updated_at: now_ms(),
             deleted: false,
             passkey: Some(passkey),
+            totp: String::new(),
         });
         self.save()?;
         Ok(id)
+    }
+
+    /// 項目にワンタイムパスワード（2 段階認証）の設定を付ける。None か空なら外す。
+    /// `otpauth://` の URL か、設定キー（英数字の並び）を受け取る。
+    pub fn set_totp(&mut self, id: &str, input: Option<&str>) -> R<()> {
+        let mut item = self.get(id).ok_or("項目が見つかりません")?.clone();
+        item.totp = match input.map(str::trim).filter(|v| !v.is_empty()) {
+            Some(v) => crate::totp::normalize(v)?.to_string(),
+            None => String::new(),
+        };
+        item.updated_at = next_item_time(item.updated_at)?;
+        self.vault.upsert(item);
+        self.save()?;
+        Ok(())
     }
 
     /// 既存の項目にパスキーを付ける（None なら外す）。
@@ -1112,6 +1130,7 @@ mod tests {
             updated_at: time,
             deleted: false,
             passkey: None,
+            totp: String::new(),
         }
     }
 

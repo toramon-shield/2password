@@ -3,7 +3,7 @@
 //   + 本物の署名処理（2pw bridge-request）+ 独立した検証ライブラリ（@simplewebauthn/server）
 //
 // 使い方（先に cargo build --release -p vault-cli を実行しておく）:
-//   cd scripts/passkey-e2e && npm install && npm test
+//   cd scripts/browser-e2e && npm install && npm test
 // 実際の Google Drive にも、利用者の保管庫にも触れない（一時フォルダに試験用の保管庫を作る）。
 const fs = require('fs');
 const os = require('os');

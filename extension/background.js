@@ -31,6 +31,7 @@ const texts = v => (Array.isArray(v) ? v.slice(0, 64).map(text) : []);
 
 const pendingKey = tabId => 'pending:' + tabId;
 const userKey = tabId => 'user:' + tabId;
+const otpKey = tabId => 'otp:' + tabId;
 
 async function getFresh(key) {
   const v = (await chrome.storage.session.get(key))[key];
@@ -70,8 +71,23 @@ async function onContentMessage(msg, sender) {
   switch (msg.type) {
     case 'list':
       return native({ type: 'list', origin });
-    case 'fill':
-      return native({ type: 'fill', origin, id: String(msg.id) });
+    case 'fill': {
+      const res = await native({ type: 'fill', origin, id: String(msg.id) });
+      // 2 段階認証のコードを持つ項目なら、続けて出る認証コードの欄のために、選んだ項目を覚えておく
+      if (res.ok && res.totp) await chrome.storage.session.set({ [otpKey(tabId)]: { origin, id: String(msg.id), at: Date.now() } });
+      return res;
+    }
+    // 直前にこのタブで選んだ項目の、いまのワンタイムパスワード（1 回だけ）
+    case 'otp-auto': {
+      const m = await getFresh(otpKey(tabId));
+      if (!m || m.origin !== origin) return { ok: false, error: 'none' };
+      const res = await native({ type: 'totp', origin, id: m.id });
+      if (res.ok || res.error === 'no_match') await chrome.storage.session.remove(otpKey(tabId));
+      return res;
+    }
+    // 利用者が認証コードの欄で項目を選んだ
+    case 'otp':
+      return native({ type: 'totp', origin, id: text(msg.id) });
     case 'generate':
       return native({ type: 'generate' });
     case 'focus':
@@ -151,7 +167,8 @@ async function onPopupMessage(msg) {
       if (!res.ok) return res;
       // 入力はページ側のスクリプトに任せる。ページが切り替わっていたら入力しないよう、オリジンを添える
       try {
-        const done = await chrome.tabs.sendMessage(tab.id, { type: 'fill-now', origin, username: res.username, password: res.password }, { frameId: 0 });
+        if (res.totp) await chrome.storage.session.set({ [otpKey(tab.id)]: { origin, id: String(msg.id), at: Date.now() } });
+        const done = await chrome.tabs.sendMessage(tab.id, { type: 'fill-now', origin, username: res.username, password: res.password, totp: Boolean(res.totp) }, { frameId: 0 });
         return done || { ok: false, error: 'no_form' };
       } catch {
         return { ok: false, error: 'no_content', message: 'ページを再読み込みしてからもう一度試してください' };
@@ -172,4 +189,4 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 // タブを閉じたら、そのタブの保存待ちを消す
-chrome.tabs.onRemoved.addListener(tabId => chrome.storage.session.remove([pendingKey(tabId), userKey(tabId)]));
+chrome.tabs.onRemoved.addListener(tabId => chrome.storage.session.remove([pendingKey(tabId), userKey(tabId), otpKey(tabId)]));

@@ -1,0 +1,14 @@
+{
+  "name": "2password-browser-e2e",
+  "private": true,
+  "description": "ブラウザでの通し確認（ヘッドレス Chrome + 拡張機能のスクリプト + 2pw）。パスキーとワンタイムパスワード",
+  "scripts": {
+    "test": "node passkey.cjs && node totp.cjs",
+    "test:passkey": "node passkey.cjs",
+    "test:totp": "node totp.cjs"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "^13.0.0",
+    "puppeteer-core": "^23.0.0"
+  }
+}

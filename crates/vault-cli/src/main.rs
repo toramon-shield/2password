@@ -91,6 +91,16 @@ enum Cmd {
     },
     /// 項目を削除する
     Rm { query: String },
+    /// ワンタイムパスワード（2 段階認証のコード）を表示する
+    Totp {
+        query: String,
+        /// 設定キーか otpauth:// の URL を登録する（値は入力を求める）
+        #[arg(long, conflicts_with = "clear")]
+        set: bool,
+        /// 登録を外す
+        #[arg(long)]
+        clear: bool,
+    },
     /// 1Password・Chrome などが書き出した CSV を取り込む
     Import {
         /// CSV ファイル（1 行目が見出し）
@@ -334,6 +344,35 @@ fn cmd_rm(p: &Prompter, query: String) -> R<()> {
     Ok(())
 }
 
+fn cmd_totp(p: &Prompter, query: String, set: bool, clear: bool) -> R<()> {
+    let mut s = unlock(p)?;
+    let it = s.pick(&query)?;
+    if set || clear {
+        let value = if set {
+            Some(p.secret("設定キー（または otpauth:// の URL）: ")?)
+        } else {
+            None
+        };
+        s.set_totp(&it.id, value.as_ref().map(|v| v.expose_secret()))?;
+        print_saved(&s);
+        println!(
+            "✓ 「{}」のワンタイムパスワードを{}",
+            it.title,
+            if set { "登録しました" } else { "外しました" }
+        );
+        if clear {
+            return Ok(());
+        }
+    }
+    let item = s.get(&it.id).ok_or("項目が見つかりません")?;
+    if item.totp.is_empty() {
+        return Err("この項目には、ワンタイムパスワードが登録されていません".into());
+    }
+    let c = vault_client::totp::current(&item.totp)?;
+    println!("{}（あと {} 秒）", c.code, c.remaining);
+    Ok(())
+}
+
 fn cmd_passwd(p: &Prompter) -> R<()> {
     let current = p.secret("現在のアカウントパスワード: ")?;
     let mut s = Session::unlock(&current)?;
@@ -430,6 +469,7 @@ fn run() -> R<()> {
             clear_after,
         } => cmd_show(&p, query, reveal, copy, clear_after),
         Cmd::Rm { query } => cmd_rm(&p, query),
+        Cmd::Totp { query, set, clear } => cmd_totp(&p, query, set, clear),
         Cmd::Import { file } => cmd_import(&p, file),
         Cmd::BridgeRequest { json, approve } => cmd_bridge_request(&p, json, approve),
         Cmd::Passwd => cmd_passwd(&p),

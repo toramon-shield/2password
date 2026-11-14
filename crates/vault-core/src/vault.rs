@@ -55,6 +55,9 @@ pub struct Item {
     /// このサイトのパスキー（ない項目では、ファイルにも書かない）
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub passkey: Option<Passkey>,
+    /// ワンタイムパスワード（2 段階認証）の設定。`otpauth://totp/...` の形。ない項目では空
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub totp: String,
 }
 
 /// Debug 出力に秘密（ユーザー名・パスワード・メモ）を出さない。
@@ -221,7 +224,18 @@ impl Vault {
 #[allow(clippy::type_complexity)]
 fn revision_order(
     item: &Item,
-) -> (u64, bool, &str, &str, &[String], &str, &str, &str, Option<&str>) {
+) -> (
+    u64,
+    bool,
+    &str,
+    &str,
+    &[String],
+    &str,
+    &str,
+    &str,
+    Option<&str>,
+    &str,
+) {
     (
         item.updated_at,
         item.deleted,
@@ -232,6 +246,7 @@ fn revision_order(
         &item.password,
         &item.notes,
         item.passkey.as_ref().map(|p| p.credential_id.as_str()),
+        &item.totp,
     )
 }
 
@@ -253,6 +268,7 @@ mod tests {
             updated_at: t,
             deleted: false,
             passkey: None,
+            totp: String::new(),
         }
     }
 

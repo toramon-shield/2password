@@ -103,6 +103,15 @@ struct ItemDetail {
     updated: String,
     password_len: usize,
     passkey: Option<PasskeyInfo>,
+    has_totp: bool,
+}
+
+/// いまのワンタイムパスワード
+#[derive(Serialize)]
+struct TotpOut {
+    code: String,
+    remaining: u64,
+    period: u64,
 }
 
 #[derive(Serialize)]
@@ -278,8 +287,34 @@ fn get_item(st: State<'_, St>, id: String) -> Res<ItemDetail> {
                 user_name: p.user_name.clone(),
                 created: vault_client::fmt_time(p.created_at),
             }),
+            has_totp: !i.totp.is_empty(),
         })
     })
+}
+
+/// 項目のいまのワンタイムパスワード（2 段階認証のコード）
+#[tauri::command]
+fn totp_code(st: State<'_, St>, id: String) -> Res<TotpOut> {
+    with_session(&st, |s| {
+        let i = s.get(&id).ok_or("項目が見つかりません")?;
+        if i.totp.is_empty() {
+            return Err("ワンタイムパスワードが登録されていません".into());
+        }
+        let c = vault_client::totp::current(&i.totp).map_err(err)?;
+        Ok(TotpOut {
+            code: c.code,
+            remaining: c.remaining,
+            period: c.period,
+        })
+    })
+}
+
+/// 項目にワンタイムパスワードの設定を登録する（空なら外す）
+#[tauri::command]
+async fn set_totp(st: State<'_, St>, id: String, value: String) -> Res<()> {
+    let st = st.inner().clone();
+    let value = Zeroizing::new(value);
+    run(move || with_session(&st, |s| s.set_totp(&id, Some(value.as_str())).map_err(err))).await
 }
 
 /// 項目からパスキーを外す（サイト側の登録は残るので、サイトの設定でも削除する）
@@ -305,6 +340,7 @@ fn copy_field(st: State<'_, St>, id: String, field: String) -> Res<u64> {
         let v = match field.as_str() {
             "password" => i.password.clone(),
             "username" => i.username.clone(),
+            "totp" if !i.totp.is_empty() => vault_client::totp::current(&i.totp).map_err(err)?.code,
             _ => return Err("不明な項目です".into()),
         };
         vault_client::copy_and_clear_later(Zeroizing::new(v), CLIPBOARD_CLEAR_SECS).map_err(err)?;
@@ -648,6 +684,8 @@ fn main() {
             save_item,
             delete_item,
             remove_passkey,
+            totp_code,
+            set_totp,
             generate_password,
             sync_now,
             change_password,

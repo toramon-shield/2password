@@ -13,6 +13,8 @@ pub struct Imported {
     pub username: String,
     pub password: Zeroizing<String>,
     pub notes: String,
+    /// ワンタイムパスワードの設定（`otpauth://` の形にそろえたもの。なければ空）
+    pub totp: Zeroizing<String>,
 }
 
 /// RFC 4180 形式の CSV を行と列に分ける（引用符の中の改行・カンマ・`""` に対応）
@@ -78,6 +80,10 @@ pub fn parse(text: &str) -> R<Vec<Imported>> {
     );
     let password = column(header, &["password", "login_password", "パスワード"]);
     let notes = column(header, &["notes", "note", "comment", "comments", "メモ"]);
+    let totp = column(
+        header,
+        &["otpauth", "totp", "login_totp", "otp", "one_time_password", "two_factor_secret"],
+    );
     if password.is_none() {
         return Err(
             "password の列が見つかりません（1 行目が見出しの CSV を指定してください）".into(),
@@ -112,12 +118,15 @@ pub fn parse(text: &str) -> R<Vec<Imported>> {
                 .and_then(|u| u.host_str().map(String::from))
                 .unwrap_or_else(|| "（名前なし）".to_string());
         }
+        // 読めない形の設定は取り込まない（項目そのものは取り込む）
+        let totp = crate::totp::normalize(&get(row, totp)).unwrap_or_default();
         out.push(Imported {
             title,
             urls,
             username,
             password,
             notes,
+            totp,
         });
     }
     Ok(out)

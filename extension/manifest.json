@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "2password",
-  "version": "0.3.0",
-  "description": "2password デスクトップアプリと連携して、ログイン画面への自動入力、ログイン情報の保存、パスキーの保管を行います。",
+  "version": "0.4.0",
+  "description": "2password デスクトップアプリと連携して、ログイン画面への自動入力、ログイン情報の保存、ワンタイムパスワードの入力、パスキーの保管を行います。",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoHqbnEmeU/oNLCBDVMimw6Wb4DiHjnB5sm63LS1W3q3OliQGUKK6C7L/lLlWIxYcKL7YwkCWtIcYroWf26f6/uR6D0TQ3f3kFutqqBD88qMO3nsAJrH4CHYglLEjxvPVfG3UFjm20G/wsnRcQ3unEiMZJiXi5f/1p44380OGy9JXkU6KL/rCjVUWnFUxsk0/HbSEz5+xAekTq8JeDONvEE4R82+3Wth7DMh0eYNF26CWXgRoDGUAJtr5Eab5It0g9EzKsX8ygaEvXDVa2utQP6BiJqiHXWsMyxC4N7grGB1bT+XAeucdmr1XZwTwCIVnZnveK+YfwbZf/NWyZzrLSQIDAQAB",
   "minimum_chrome_version": "111",
   "icons": {
