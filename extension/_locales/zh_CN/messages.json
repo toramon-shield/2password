@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "与 2password 桌面应用配合使用，可在登录页面自动填充、保存登录信息、填写一次性密码，并保存通行密钥。",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "（无用户名）"
+  },
+  "who": {
+    "message": "$1（$2）",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "打开应用"
+  },
+  "approve_title": {
+    "message": "请在 2password 应用中允许"
+  },
+  "approve_text": {
+    "message": "这是首次在此网站上使用。请在应用中允许后，再次选择条目。"
+  },
+  "rate_limited_title": {
+    "message": "已锁定 2password"
+  },
+  "rate_limited_text": {
+    "message": "短时间内连续收到请求，因此已锁定 2password。"
+  },
+  "locked_title": {
+    "message": "2password 已锁定"
+  },
+  "locked_text": {
+    "message": "请在应用中解锁。"
+  },
+  "generate_title": {
+    "message": "生成并填写强密码"
+  },
+  "generate_sub": {
+    "message": "提交后会询问是否保存"
+  },
+  "lookalike_title": {
+    "message": "注意：这不是您保存的网站"
+  },
+  "lookalike_note_title": {
+    "message": "与“$1”相似，但这是另一个网站",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "此页面是 $1。请勿在此输入 $2（$3）的密码。请仔细核对网址。",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "与 $1（$2）的网址不同",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "此页面是 $1。如需在此处也使用，请在应用中将此网址添加到条目的 URL 中。",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "可以通过条目的“编辑”添加 URL"
+  },
+  "idn_title": {
+    "message": "注意：请核对网址"
+  },
+  "idn_note_title": {
+    "message": "网址中包含特殊字符"
+  },
+  "idn_note_text": {
+    "message": "此页面（$1）可能是使用了外观相似字符的仿冒网站。",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "此页面未加密（http）"
+  },
+  "insecure_text": {
+    "message": "密码可能在传输过程中被读取，因此不会在此页面上填充。"
+  },
+  "locked_menu_open": {
+    "message": "打开应用并解锁"
+  },
+  "locked_menu_sub": {
+    "message": "解锁后，请再次点击此输入框"
+  },
+  "save_title": {
+    "message": "要保存登录信息吗？"
+  },
+  "update_title": {
+    "message": "要更新密码吗？"
+  },
+  "save_later": {
+    "message": "暂不保存"
+  },
+  "save_button": {
+    "message": "保存"
+  },
+  "update_button": {
+    "message": "更新"
+  },
+  "update_text": {
+    "message": "将“$1”的密码替换为新密码。",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password 已锁定。解锁后即可保存。"
+  },
+  "saving": {
+    "message": "正在保存…"
+  },
+  "saved": {
+    "message": "已保存到 2password"
+  },
+  "save_failed": {
+    "message": "无法保存"
+  },
+  "otp_fill": {
+    "message": "填写一次性密码"
+  },
+  "otp_filled_title": {
+    "message": "已填写一次性密码"
+  },
+  "otp_filled_text": {
+    "message": "2password 已填写 $1 的验证码。",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "使用其他方式"
+  },
+  "pk_waiting": {
+    "message": "正在等待解锁…"
+  },
+  "pk_locked_text": {
+    "message": "要使用 2password 管理通行密钥，请在应用中解锁。"
+  },
+  "pk_save_title": {
+    "message": "要将通行密钥保存到 2password 吗？"
+  },
+  "pk_save_text": {
+    "message": "保存后，可以在安装了 2password 的其他电脑上使用。"
+  },
+  "pk_save": {
+    "message": "保存到 2password"
+  },
+  "pk_creating": {
+    "message": "正在创建…"
+  },
+  "pk_save_failed": {
+    "message": "无法保存通行密钥"
+  },
+  "pk_save_failed_text": {
+    "message": "将切换到浏览器的方式。"
+  },
+  "pk_login_title": {
+    "message": "使用通行密钥登录"
+  },
+  "pk_login_text": {
+    "message": "请选择要使用的账户。"
+  },
+  "popup_checking": {
+    "message": "正在检查…"
+  },
+  "popup_not_running": {
+    "message": "2password 应用未运行。"
+  },
+  "popup_not_running_text": {
+    "message": "请启动应用并解锁，然后再次打开此处。"
+  },
+  "popup_not_allowed": {
+    "message": "此扩展程序尚未在应用中登记。"
+  },
+  "popup_not_allowed_step1": {
+    "message": "打开 2password 应用的“设置”"
+  },
+  "popup_not_allowed_step2": {
+    "message": "在“指定扩展程序 ID”中输入此 ID"
+  },
+  "popup_not_allowed_step3": {
+    "message": "点击“连接浏览器”"
+  },
+  "popup_id": {
+    "message": "ID：$1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "未连接到 2password 应用。"
+  },
+  "popup_no_host_step1": {
+    "message": "启动 2password 应用"
+  },
+  "popup_no_host_step2": {
+    "message": "点击“设置”→“浏览器扩展程序”→“连接浏览器”"
+  },
+  "popup_no_host_step3": {
+    "message": "重启浏览器"
+  },
+  "popup_ext_id": {
+    "message": "此扩展程序的 ID：$1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "请在 2password 应用中创建密码库。"
+  },
+  "popup_locked": {
+    "message": "2password 已锁定。"
+  },
+  "popup_unlock": {
+    "message": "打开应用并解锁"
+  },
+  "popup_lookalike": {
+    "message": "注意：此页面与您保存的“$1”相似，但这是另一个网站。",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "请勿在此输入 $1（$2）的密码。请仔细核对网址。",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "此网址与您保存的 $1（$2）不同。",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "如需在此处也使用，请在应用中将此页面的网址添加到条目的 URL 中。"
+  },
+  "popup_empty": {
+    "message": "此网站还没有条目。"
+  },
+  "popup_empty_text": {
+    "message": "登录时会询问是否保存。在应用中通过“+ 添加”登记时，请在 URL 栏中填写此网站的网址。"
+  },
+  "popup_click_to_fill": {
+    "message": "点击条目即可在此页面上填充。"
+  },
+  "err_no_match": {
+    "message": "没有与此网站匹配的条目"
+  },
+  "err_insecure": {
+    "message": "无法在未加密的页面（http）上使用"
+  },
+  "err_bad_origin": {
+    "message": "无法在此页面上使用。"
+  },
+  "err_bad_rp": {
+    "message": "此页面无法使用该网站名称的通行密钥"
+  },
+  "err_expired": {
+    "message": "由于时间过长，无法保存"
+  },
+  "err_no_form": {
+    "message": "在此页面上找不到输入框"
+  },
+  "err_no_content": {
+    "message": "请重新加载页面后重试"
+  },
+  "err_navigated": {
+    "message": "页面已切换，因此未填充"
+  },
+  "err_exists": {
+    "message": "此网站的通行密钥已保存"
+  },
+  "err_locked": {
+    "message": "2password 已锁定"
+  },
+  "err_rate_limited": {
+    "message": "短时间内连续收到请求，因此已锁定 2password"
+  },
+  "err_needs_approval": {
+    "message": "这是首次在此网站上使用。请在 2password 应用中允许后，再次选择"
+  },
+  "err_bad_request": {
+    "message": "无法处理此请求"
+  },
+  "err_failed": {
+    "message": "操作失败"
+  }
+}

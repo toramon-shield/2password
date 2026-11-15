@@ -858,6 +858,25 @@ pub struct InitResult {
 }
 
 pub fn init_account(choice: StoreChoice, pw: &SecretString, kit_path: &Path) -> R<InitResult> {
+    init_account_inner(choice, pw, kit_path, None)
+}
+
+/// `init_account` と同じ。Emergency Kit を、指定した言語の文言で書き出す
+pub fn init_account_with_kit(
+    choice: StoreChoice,
+    pw: &SecretString,
+    kit_path: &Path,
+    kit_text: &kit::KitText,
+) -> R<InitResult> {
+    init_account_inner(choice, pw, kit_path, Some(kit_text))
+}
+
+fn init_account_inner(
+    choice: StoreChoice,
+    pw: &SecretString,
+    kit_path: &Path,
+    kit_text: Option<&kit::KitText>,
+) -> R<InitResult> {
     if Config::exists() {
         return Err("この端末は設定済みです（やり直す場合は「この端末から消す」）".into());
     }
@@ -895,12 +914,11 @@ pub fn init_account(choice: StoreChoice, pw: &SecretString, kit_path: &Path) -> 
     }
     .save()?;
     let location = store.describe("");
-    kit::write(
-        kit_path,
-        &new.secret_key,
-        Path::new(&location),
-        &fmt_time(now_ms()),
-    )?;
+    let created = fmt_time(now_ms());
+    match kit_text {
+        Some(text) => kit::write_with(kit_path, &new.secret_key, Path::new(&location), &created, text)?,
+        None => kit::write(kit_path, &new.secret_key, Path::new(&location), &created)?,
+    }
     Ok(InitResult {
         secret_key: new.secret_key.to_display(),
         location,

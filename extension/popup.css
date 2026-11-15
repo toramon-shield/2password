@@ -4,14 +4,14 @@
 }
 body { margin: 0; width: 320px; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", sans-serif; color: var(--fg); background: var(--bg); }
 header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-header #host { margin-left: auto; font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px; }
+header #host { margin-inline-start: auto; font-size: 12px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 170px; }
 .logo { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 700; font-size: 11px; }
 main { padding: 6px 0; }
 p { margin: 8px 14px; }
-ol { margin: 8px 14px 8px 34px; padding: 0; font-size: 13px; }
+ol { margin-block: 8px; margin-inline: 34px 14px; padding: 0; font-size: 13px; }
 .muted { color: var(--mute); font-size: 13px; }
 .error { color: #dc2626; font-size: 13px; }
-button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: left; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; text-align: start; }
 button.item { display: block; width: 100%; padding: 8px 14px; }
 button.item:hover, button.item:focus-visible { background: var(--hover); outline: none; }
 button.item b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -87,13 +87,20 @@ const check = (name, ok, extra) => {
   await page.exposeFunction('__bg', msg => new Promise(resolve => {
     listener(msg, { id: 'ext', tab: { id: 1 }, frameId: 0, origin, url: origin + '/' }, resolve);
   }));
-  await page.evaluateOnNewDocument(() => {
+  // 拡張機能の文言（chrome.i18n）は、日本語の messages.json で模擬する
+  const messages = JSON.parse(fs.readFileSync(path.join(EXT, '_locales', 'ja', 'messages.json'), 'utf8'));
+  await page.evaluateOnNewDocument(messages => {
     // テストから中身を見られるよう、closed の Shadow DOM を記録する（製品の動作は変えない）
     const orig = Element.prototype.attachShadow;
     window.__roots = [];
     Element.prototype.attachShadow = function (o) { const r = orig.call(this, o); window.__roots.push(r); return r; };
-    window.chrome = { runtime: { id: 'ext', sendMessage: m => window.__bg(m), onMessage: { addListener() {} } } };
-  });
+    const i18n = {
+      getMessage: (key, subs = []) => key === '@@bidi_dir' ? 'ltr'
+        : messages[key] ? messages[key].message.replace(/\$([1-9])/g, (m, n) => subs[n - 1] ?? '') : '',
+      getUILanguage: () => 'ja',
+    };
+    window.chrome = { runtime: { id: 'ext', sendMessage: m => window.__bg(m), onMessage: { addListener() {} } }, i18n };
+  }, messages);
   // ブラウザ標準のパスキー（「ほかの方法」の先）を、仮想の認証器で受ける
   const cdp = await page.createCDPSession();
   await cdp.send('WebAuthn.enable');

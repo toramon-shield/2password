@@ -116,12 +116,19 @@ function expectedCodes() {
   await page.exposeFunction('__bg', msg => new Promise(resolve => {
     listener(msg, { id: 'ext', tab: { id: 1 }, frameId: 0, origin, url: origin + '/' }, resolve);
   }));
-  await page.evaluateOnNewDocument(() => {
+  // 拡張機能の文言（chrome.i18n）は、日本語の messages.json で模擬する
+  const messages = JSON.parse(fs.readFileSync(path.join(EXT, '_locales', 'ja', 'messages.json'), 'utf8'));
+  await page.evaluateOnNewDocument(messages => {
     const orig = Element.prototype.attachShadow;
     window.__roots = [];
     Element.prototype.attachShadow = function (o) { const root = orig.call(this, o); window.__roots.push(root); return root; };
-    window.chrome = { runtime: { id: 'ext', sendMessage: m => window.__bg(m), onMessage: { addListener() {} } } };
-  });
+    const i18n = {
+      getMessage: (key, subs = []) => key === '@@bidi_dir' ? 'ltr'
+        : messages[key] ? messages[key].message.replace(/\$([1-9])/g, (m, n) => subs[n - 1] ?? '') : '',
+      getUILanguage: () => 'ja',
+    };
+    window.chrome = { runtime: { id: 'ext', sendMessage: m => window.__bg(m), onMessage: { addListener() {} } }, i18n };
+  }, messages);
 
   async function clickIn(label, timeout = 8000) {
     const start = Date.now();

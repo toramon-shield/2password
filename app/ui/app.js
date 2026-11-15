@@ -1,4 +1,5 @@
 // 2password GUI（WebView 側）。暗号処理はすべて Rust 側で行い、ここでは画面だけを扱う。
+// 文言は i18n.js の t()（画面の文言）と tr()（Rust が返すメッセージの訳）で出す。
 'use strict';
 
 const { invoke } = window.__TAURI__.core;
@@ -15,17 +16,19 @@ function show(view) {
 }
 
 function toast(msg, isErr = false) {
-  const t = document.createElement('div');
-  t.className = 'toast' + (isErr ? ' err' : '');
-  t.textContent = msg;
-  $('#toasts').appendChild(t);
-  setTimeout(() => t.remove(), isErr ? 7000 : 3500);
+  const el = document.createElement('div');
+  el.className = 'toast' + (isErr ? ' err' : '');
+  el.textContent = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), isErr ? 7000 : 3500);
 }
+/** Rust から返ったエラーを、表示言語に訳して出す */
+const fail = e => toast(tr(e), true);
 
 function setBusy(form, busy, label) {
   const b = $('button[type=submit]', form);
   if (!b) return;
-  if (busy) { b.dataset.label = b.textContent; b.textContent = label || '処理中…'; }
+  if (busy) { b.dataset.label = b.textContent; b.textContent = label || t('busy.default'); }
   else if (b.dataset.label) b.textContent = b.dataset.label;
   b.disabled = busy;
 }
@@ -34,7 +37,7 @@ function clearSecrets(form) {
   $$('input[type=password], input[name=secret_key]', form).forEach(i => (i.value = ''));
 }
 
-function confirmBox(title, body, yesLabel = '実行') {
+function confirmBox(title, body, yesLabel = t('btn.run')) {
   const d = $('#d-confirm');
   $('#confirm-title').textContent = title;
   $('#confirm-body').textContent = body;
@@ -45,17 +48,14 @@ function confirmBox(title, body, yesLabel = '実行') {
   });
 }
 
-const STRENGTH = [
-  ['#dc2626', 'とても弱い'], ['#ea580c', '弱い'], ['#ca8a04', 'もう少し'],
-  ['#16a34a', '強い（使えます）'], ['#0d9488', 'とても強い'],
-];
+const STRENGTH_COLORS = ['#dc2626', '#ea580c', '#ca8a04', '#16a34a', '#0d9488'];
 async function updateMeter(input, bar, hint) {
   const v = input.value;
-  if (!v) { bar.style.width = '0'; hint.textContent = '単語を4〜5個つなげた、長いパスフレーズがおすすめです。'; return; }
+  if (!v) { bar.style.width = '0'; hint.textContent = t('create.hint'); return; }
   const s = await invoke('password_strength', { password: v });
   bar.style.width = ((s + 1) * 20) + '%';
-  bar.style.background = STRENGTH[s][0];
-  hint.textContent = `強度: ${STRENGTH[s][1]}（${s}/4）` + (s < 3 ? '　3 以上が必要です' : '');
+  bar.style.background = STRENGTH_COLORS[s];
+  hint.textContent = t('strength.label', { level: t('strength.' + s), score: s }) + (s < 3 ? ' ' + t('strength.need') : '');
 }
 
 // 操作があったことを Rust 側に伝える（自動ロックの計測用。最大 15 秒に1回）
@@ -68,10 +68,14 @@ let lastTouch = 0;
 // ---------- 起動 ----------
 let info = null;
 async function boot() {
+  await I18N.init();
+  $$('.lang-select').forEach(I18N.mountSelect);
   info = await invoke('app_info');
   if (!info.configured) return show('welcome');
   if (info.unlocked) return enterMain();
-  $('#lock-where').textContent = info.backend === 'drive' ? '保存先: Google Drive' : '保存先: ' + (info.location || '');
+  $('#lock-where').textContent = info.backend === 'drive'
+    ? t('lock.where_drive')
+    : t('lock.where_folder', { location: info.location || '' });
   show('lock');
 }
 
@@ -79,6 +83,7 @@ async function boot() {
 function mountStorage(form) {
   const slot = $('.slot-storage', form);
   slot.replaceChildren($('#t-storage').content.cloneNode(true));
+  I18N.apply(slot);
   const path = $('.folder-path', form);
   if (info.detected_drive_folder) path.value = info.detected_drive_folder;
   const sync = () => {
@@ -102,19 +107,33 @@ $$('[data-go]').forEach(b => b.addEventListener('click', () => {
   show(to);
 }));
 
+/** Emergency Kit（印刷用の HTML）の文言。Rust 側はこれを埋め込むだけ */
+function kitText() {
+  return {
+    lang: I18N.lang,
+    dir: document.documentElement.dir,
+    created: t('kit.created'),
+    account_id: t('kit.account_id'),
+    store: t('kit.store'),
+    password: t('kit.password'),
+    notes: [t('kit.warn1'), t('kit.warn2'), t('kit.warn3')],
+    delete_after: t('kit.warn4'),
+  };
+}
+
 const fc = $('#f-create');
 fc.password.addEventListener('input', () => updateMeter(fc.password, $('#c-meter'), $('#c-hint')));
 fc.addEventListener('submit', async e => {
   e.preventDefault();
   $('.error', fc).textContent = '';
   const args = storageArgs(fc);
-  setBusy(fc, true, args.mode === 'drive' ? 'ブラウザで Google にログインしてください…' : '鍵を作っています…');
+  setBusy(fc, true, args.mode === 'drive' ? t('busy.google') : t('busy.keys'));
   try {
-    const r = await invoke('create_account', { ...args, password: fc.password.value, password2: fc.password2.value });
+    const r = await invoke('create_account', { ...args, password: fc.password.value, password2: fc.password2.value, kit: kitText() });
     clearSecrets(fc);
     $('#sk-out').textContent = r.secret_key;
-    $('#kit-path').textContent = 'Emergency Kit: ' + r.kit_path;
-    $('#b-open-kit').onclick = () => invoke('open_kit').catch(e => toast(String(e), true));
+    $('#kit-path').textContent = t('created.kit_path', { path: r.kit_path });
+    $('#b-open-kit').onclick = () => invoke('open_kit').catch(fail);
     $('#kit-done').checked = false;
     $('#b-created-next').disabled = true;
     $('#b-created-next').onclick = async () => {
@@ -124,7 +143,7 @@ fc.addEventListener('submit', async e => {
     };
     show('created');
   } catch (err) {
-    $('.error', fc).textContent = err;
+    $('.error', fc).textContent = tr(err);
   } finally { setBusy(fc, false); }
 });
 $('#kit-done').addEventListener('change', e => ($('#b-created-next').disabled = !e.target.checked));
@@ -134,14 +153,14 @@ fj.addEventListener('submit', async e => {
   e.preventDefault();
   $('.error', fj).textContent = '';
   const args = storageArgs(fj);
-  setBusy(fj, true, args.mode === 'drive' ? 'ブラウザで Google にログインしてください…' : '解除しています…');
+  setBusy(fj, true, args.mode === 'drive' ? t('busy.google') : t('busy.unlocking'));
   try {
     const notices = await invoke('join_account', { ...args, secret_key: fj.secret_key.value, password: fj.password.value });
     clearSecrets(fj);
-    notices.forEach(n => toast(n));
+    notices.forEach(n => toast(tr(n)));
     enterMain();
   } catch (err) {
-    $('.error', fj).textContent = err;
+    $('.error', fj).textContent = tr(err);
   } finally { setBusy(fj, false); }
 });
 
@@ -150,14 +169,14 @@ const fu = $('#f-unlock');
 fu.addEventListener('submit', async e => {
   e.preventDefault();
   $('.error', fu).textContent = '';
-  setBusy(fu, true, '解除しています…');
+  setBusy(fu, true, t('busy.unlocking'));
   try {
     const notices = await invoke('unlock', { password: fu.password.value });
     clearSecrets(fu);
-    notices.forEach(n => toast(n));
+    notices.forEach(n => toast(tr(n)));
     enterMain();
   } catch (err) {
-    $('.error', fu).textContent = err;
+    $('.error', fu).textContent = tr(err);
     fu.password.select();
   } finally { setBusy(fu, false); }
 });
@@ -174,9 +193,7 @@ async function lockNow(reason) {
   $$('form').forEach(f => f.reset());
   $$('input[type=text][name=password]').forEach(i => (i.type = 'password'));
   info = await invoke('app_info');
-  $('#lock-where').textContent = reason === 'auto' ? '5分間操作がなかったため、自動でロックしました'
-    : reason === 'browser' ? 'ブラウザの拡張機能から短い時間に要求が続いたため、ロックしました。心当たりがなければ、拡張機能を確認してください'
-    : '';
+  $('#lock-where').textContent = reason === 'auto' ? t('lock.auto') : reason === 'browser' ? t('lock.browser') : '';
   show('lock');
 }
 $('#b-lock').addEventListener('click', () => lockNow('manual'));
@@ -206,15 +223,15 @@ function renderList() {
   if (!shown.length) {
     const d = document.createElement('div');
     d.className = 'none';
-    d.textContent = items.length ? '一致する項目がありません' : 'まだ項目がありません';
+    d.textContent = items.length ? t('main.no_match') : t('main.no_items');
     list.append(d);
   }
   for (const i of shown) {
     const b = document.createElement('button');
     b.className = i.id === selected ? 'sel' : '';
-    const t = document.createElement('b'); t.textContent = (i.has_passkey ? '🔑 ' : '') + i.title;
+    const ti = document.createElement('b'); ti.textContent = (i.has_passkey ? '🔑 ' : '') + i.title;
     const s = document.createElement('span'); s.textContent = i.username || i.urls[0] || '';
-    b.append(t, s);
+    b.append(ti, s);
     b.addEventListener('click', () => selectItem(i.id));
     list.append(b);
   }
@@ -222,7 +239,10 @@ function renderList() {
 $('#q').addEventListener('input', renderList);
 
 function renderEmpty() {
-  $('#detail').innerHTML = '<div class="empty muted">左の一覧から項目を選ぶか、「＋ 追加」で登録してください。</div>';
+  const d = document.createElement('div');
+  d.className = 'empty muted';
+  d.textContent = t('main.empty');
+  $('#detail').replaceChildren(d);
 }
 
 function field(label, valueNode, ...buttons) {
@@ -244,11 +264,11 @@ function span(text, cls = '') {
   const s = document.createElement('span'); s.textContent = text; if (cls) s.className = cls; return s;
 }
 
-async function copyField(id, field) {
+async function copyField(id, which) {
   try {
-    const secs = await invoke('copy_field', { id, field });
-    toast(`コピーしました（${secs} 秒後にクリップボードから消えます）`);
-  } catch (e) { toast(String(e), true); }
+    const sec = await invoke('copy_field', { id, field: which });
+    toast(t('copy.done', { sec }));
+  } catch (e) { fail(e); }
 }
 
 let totpTimer = null;
@@ -256,66 +276,68 @@ async function selectItem(id) {
   selected = id;
   renderList();
   let it;
-  try { it = await invoke('get_item', { id }); } catch (e) { return toast(String(e), true); }
+  try { it = await invoke('get_item', { id }); } catch (e) { return fail(e); }
   const d = $('#detail');
   d.replaceChildren();
   const h = document.createElement('h1'); h.textContent = it.title;
   d.append(h);
-  if (it.username) d.append(field('ユーザー名', span(it.username), btn('コピー', 'secondary', () => copyField(id, 'username'))));
+  if (it.username) d.append(field(t('field.username'), span(it.username), btn(t('btn.copy'), 'secondary', () => copyField(id, 'username'))));
   const pw = span('•'.repeat(Math.min(it.password_len, 16)), 'pw');
   let shown = false;
-  const reveal = btn('表示', 'secondary', async () => {
-    if (shown) { pw.textContent = '•'.repeat(Math.min(it.password_len, 16)); reveal.textContent = '表示'; shown = false; return; }
+  const reveal = btn(t('btn.show'), 'secondary', async () => {
+    if (shown) { pw.textContent = '•'.repeat(Math.min(it.password_len, 16)); reveal.textContent = t('btn.show'); shown = false; return; }
     pw.textContent = await invoke('reveal_password', { id });
-    reveal.textContent = '隠す'; shown = true;
+    reveal.textContent = t('btn.hide'); shown = true;
     setTimeout(() => { if (shown && selected === id) reveal.click(); }, 20000);
   });
-  if (it.password_len) d.append(field('パスワード', pw, reveal, btn('コピー', 'primary', () => copyField(id, 'password'))));
+  if (it.password_len) d.append(field(t('field.password'), pw, reveal, btn(t('btn.copy'), 'primary', () => copyField(id, 'password'))));
   clearInterval(totpTimer);
   if (it.has_totp) {
     const code = span('······', 'pw');
+    code.dir = 'ltr';
     const left = span('', 'muted small');
     const tick = async () => {
       if (selected !== id || $('#v-main').hidden) return clearInterval(totpTimer);
       try {
-        const t = await invoke('totp_code', { id });
-        code.textContent = t.code.replace(/(.{3})(?=.)/g, '$1 ');
-        left.textContent = `あと ${t.remaining} 秒`;
-      } catch (e) { clearInterval(totpTimer); left.textContent = String(e); }
+        const c = await invoke('totp_code', { id });
+        code.textContent = c.code.replace(/(.{3})(?=.)/g, '$1 ');
+        left.textContent = t('detail.totp_left', { sec: c.remaining });
+      } catch (e) { clearInterval(totpTimer); left.textContent = tr(e); }
     };
     tick();
     totpTimer = setInterval(tick, 1000);
-    d.append(field('ワンタイムパスワード', code, left,
-      btn('コピー', 'primary', () => copyField(id, 'totp')),
-      btn('外す', 'secondary', async () => {
-        if (!await confirmBox('ワンタイムパスワードを外しますか？', `「${it.title}」の 2 段階認証の設定を 2password から消します。サイト側の 2 段階認証はそのまま残るので、ほかの認証アプリや回復コードがないとログインできなくなります。`, '外す')) return;
-        try { await invoke('set_totp', { id, value: '' }); toast('外しました'); selectItem(id); }
-        catch (e) { toast(String(e), true); }
+    d.append(field(t('field.totp'), code, left,
+      btn(t('btn.copy'), 'primary', () => copyField(id, 'totp')),
+      btn(t('btn.remove'), 'secondary', async () => {
+        if (!await confirmBox(t('totp.remove_title'), t('totp.remove_body', { title: it.title }), t('btn.remove'))) return;
+        try { await invoke('set_totp', { id, value: '' }); toast(t('totp.removed')); selectItem(id); }
+        catch (e) { fail(e); }
       })));
   }
   if (it.passkey) {
-    d.append(field('パスキー', span(`🔑 ${it.passkey.rp_id}（${it.passkey.user_name || 'ユーザー名なし'}）　作成: ${it.passkey.created}`),
-      btn('外す', 'secondary', async () => {
-        if (!await confirmBox('パスキーを外しますか？', `「${it.title}」のパスキーを 2password から消します。サイト側の登録は残るので、サイトの設定画面でも削除してください。`, '外す')) return;
-        try { await invoke('remove_passkey', { id }); toast('パスキーを外しました'); await refreshList(); selectItem(id); }
-        catch (e) { toast(String(e), true); }
+    const who = it.passkey.user_name || t('detail.no_username');
+    d.append(field(t('field.passkey'), span(t('detail.passkey', { rp: it.passkey.rp_id, user: who, created: it.passkey.created })),
+      btn(t('btn.remove'), 'secondary', async () => {
+        if (!await confirmBox(t('passkey.remove_title'), t('passkey.remove_body', { title: it.title }), t('btn.remove'))) return;
+        try { await invoke('remove_passkey', { id }); toast(t('passkey.removed')); await refreshList(); selectItem(id); }
+        catch (e) { fail(e); }
       })));
   }
   for (const u of it.urls) {
-    const a = document.createElement('a'); a.textContent = u;
-    a.addEventListener('click', () => invoke('open_url', { url: u }).catch(e => toast(String(e), true)));
-    d.append(field('URL', a));
+    const a = document.createElement('a'); a.textContent = u; a.dir = 'ltr';
+    a.addEventListener('click', () => invoke('open_url', { url: u }).catch(fail));
+    d.append(field(t('field.url'), a));
   }
-  if (it.notes) d.append(field('メモ', span(it.notes, 'notes')));
-  const meta = document.createElement('p'); meta.className = 'muted small'; meta.textContent = '更新: ' + it.updated;
+  if (it.notes) d.append(field(t('field.notes'), span(it.notes, 'notes')));
+  const meta = document.createElement('p'); meta.className = 'muted small'; meta.textContent = t('detail.updated', { time: it.updated });
   const actions = document.createElement('div'); actions.className = 'actions';
   actions.append(
-    btn('削除', 'danger', async () => {
-      if (!await confirmBox('削除しますか？', `「${it.title}」を削除します。他の端末にも反映されます。`, '削除')) return;
-      try { await invoke('delete_item', { id }); selected = null; toast('削除しました'); refreshList(); }
-      catch (e) { toast(String(e), true); }
+    btn(t('btn.delete'), 'danger', async () => {
+      if (!await confirmBox(t('delete.title'), t('delete.body', { title: it.title }), t('btn.delete'))) return;
+      try { await invoke('delete_item', { id }); selected = null; toast(t('delete.done')); refreshList(); }
+      catch (e) { fail(e); }
     }),
-    btn('編集', 'secondary', () => openEditor(it)),
+    btn(t('btn.edit'), 'secondary', () => openEditor(it)),
   );
   d.append(meta, actions);
 }
@@ -325,12 +347,12 @@ let editingId = null;
 const fe = $('#f-edit');
 function openEditor(it) {
   editingId = it ? it.id : null;
-  $('#edit-title').textContent = it ? '項目を編集' : '項目を追加';
+  $('#edit-title').textContent = it ? t('edit.edit') : t('edit.add');
   fe.reset();
   $('.error', fe).textContent = '';
   fe.password.type = 'password';
-  fe.password.placeholder = it ? '空なら変更しない' : '空なら自動生成';
-  fe.totp.placeholder = it && it.has_totp ? '登録済み（変更するときだけ入力）' : 'なければ空のまま';
+  fe.password.placeholder = it ? t('edit.password_keep') : t('edit.password_new');
+  fe.totp.placeholder = it && it.has_totp ? t('edit.totp_set') : t('edit.totp_empty');
   if (it) {
     fe.title.value = it.title; fe.username.value = it.username;
     fe.urls.value = it.urls.join('\n'); fe.notes.value = it.notes;
@@ -352,7 +374,7 @@ fe.addEventListener('submit', async e => {
     urls: fe.urls.value.split('\n'), password: fe.password.value, notes: fe.notes.value,
   };
   const save = $('#b-edit-save');
-  save.disabled = true; save.textContent = '保存中…';
+  save.disabled = true; save.textContent = t('busy.saving');
   try {
     const id = await invoke('save_item', { id: editingId, form });
     fe.password.value = '';
@@ -360,22 +382,22 @@ fe.addEventListener('submit', async e => {
     fe.totp.value = '';
     if (totp) {
       try { await invoke('set_totp', { id, value: totp }); }
-      catch (err) { toast('項目は保存しましたが、ワンタイムパスワードは登録できませんでした: ' + err, true); }
+      catch (err) { toast(t('edit.totp_failed', { error: tr(err) }), true); }
     }
     $('#d-edit').close();
-    toast('暗号化して保存しました');
+    toast(t('edit.saved'));
     selected = id;
     await refreshList();
   } catch (err) {
-    $('.error', fe).textContent = err;
-  } finally { save.disabled = false; save.textContent = '保存'; }
+    $('.error', fe).textContent = tr(err);
+  } finally { save.disabled = false; save.textContent = t('btn.save'); }
 });
 
 // ---------- 同期 ----------
 $('#b-sync').addEventListener('click', async () => {
   const b = $('#b-sync'); b.disabled = true;
-  try { (await invoke('sync_now')).forEach(n => toast(n)); await refreshList(); }
-  catch (e) { toast(String(e), true); }
+  try { (await invoke('sync_now')).forEach(n => toast(tr(n))); await refreshList(); }
+  catch (e) { fail(e); }
   finally { b.disabled = false; }
 });
 
@@ -383,28 +405,31 @@ $('#b-sync').addEventListener('click', async () => {
 async function openSettings() {
   const d = $('#d-settings');
   d.showModal();
-  const kv = $('#st-kv'); kv.innerHTML = '<dt>読み込み中…</dt><dd></dd>';
+  const kv = $('#st-kv');
+  const loading = document.createElement('dt');
+  loading.textContent = t('settings.loading');
+  kv.replaceChildren(loading);
   $('#st-hex').textContent = '';
   try {
     const s = await invoke('status');
     kv.replaceChildren();
     const rows = [
-      ['保管方式', s.backend === 'drive' ? 'Google Drive API（drive.file）' : '同期フォルダ'],
-      ['保管場所', s.location],
-      ['アカウントID', s.aid],
-      ['保存番号', String(s.known_counter)],
-      ...s.files.map(([n, size]) => [n, size == null ? '（なし）' : size + ' バイト']),
-      ['この端末の設定', s.home],
+      [t('settings.backend'), s.backend === 'drive' ? t('settings.backend_drive') : t('storage.folder')],
+      [t('settings.storage'), s.location],
+      [t('settings.aid'), s.aid],
+      [t('settings.counter'), String(s.known_counter)],
+      ...s.files.map(([n, size]) => [n, size == null ? t('settings.file_missing') : t('settings.bytes', { n: size })]),
+      [t('settings.home'), s.home],
     ];
     for (const [k, v] of rows) {
       const dt = document.createElement('dt'); dt.textContent = k;
       const dd = document.createElement('dd'); dd.textContent = v;
       kv.append(dt, dd);
     }
-    $('#st-hex').textContent = s.sample_hex ? '暗号文の例: ' + s.sample_hex + '…' : '';
+    $('#st-hex').textContent = s.sample_hex ? t('settings.sample', { hex: s.sample_hex }) : '';
     $('#b-migrate').hidden = !(s.backend === 'folder' && s.oauth_ready);
     $('#b-google-login').disabled = !s.oauth_ready;
-  } catch (e) { kv.innerHTML = ''; toast(String(e), true); }
+  } catch (e) { kv.replaceChildren(); fail(e); }
   $('#st-version').textContent = '2password ' + info.version;
   refreshBrowser();
 }
@@ -412,16 +437,16 @@ $('#b-settings').addEventListener('click', openSettings);
 $('#b-settings-close').addEventListener('click', () => $('#d-settings').close());
 
 $('#b-google-login').addEventListener('click', async () => {
-  toast('ブラウザで Google にログインしてください');
-  try { await invoke('google_login'); toast('Google にログインしました'); } catch (e) { toast(String(e), true); }
+  toast(t('google.login_prompt'));
+  try { await invoke('google_login'); toast(t('google.logged_in')); } catch (e) { fail(e); }
 });
 $('#b-google-logout').addEventListener('click', async () => {
-  if (!await confirmBox('Google からログアウト', 'この端末の Google トークンを無効化します。次に同期するときは、もう一度ログインが必要です。', 'ログアウト')) return;
-  try { await invoke('google_logout'); toast('ログアウトしました'); } catch (e) { toast(String(e), true); }
+  if (!await confirmBox(t('google.logout_title'), t('google.logout_body'), t('google.logout_yes'))) return;
+  try { await invoke('google_logout'); toast(t('google.logged_out')); } catch (e) { fail(e); }
 });
 $('#b-migrate').addEventListener('click', async () => {
-  if (!await confirmBox('Google Drive へ移す', '保管庫を暗号文のまま Google Drive（2password-vault フォルダ）へ移します。パスワードと Secret Key は変わりません。', '移す')) return;
-  try { const loc = await invoke('migrate_to_drive'); toast('移しました: ' + loc); openSettings(); } catch (e) { toast(String(e), true); }
+  if (!await confirmBox(t('migrate.title'), t('migrate.body'), t('migrate.yes'))) return;
+  try { const loc = await invoke('migrate_to_drive'); toast(t('migrate.done', { location: loc })); openSettings(); } catch (e) { fail(e); }
 });
 
 const fp = $('#f-passwd');
@@ -429,39 +454,38 @@ fp.addEventListener('submit', async e => {
   e.preventDefault();
   try {
     await invoke('change_password', { current: fp.current.value, password: fp.password.value, password2: fp.password2.value });
-    toast('アカウントパスワードを変更しました');
-  } catch (err) { toast(String(err), true); }
+    toast(t('settings.passwd_done'));
+  } catch (err) { fail(err); }
   finally { clearSecrets(fp); }
 });
 
 $('#b-forget').addEventListener('click', async () => {
-  if (!await confirmBox('この端末から消しますか？', 'この端末の設定と Secret Key を消します。保管場所の暗号文は残ります。再び使うには Emergency Kit の Secret Key が必要です。', '消す')) return;
-  try { await invoke('forget_device'); $('#d-settings').close(); info = await invoke('app_info'); show('welcome'); toast('この端末から消しました'); }
-  catch (e) { toast(String(e), true); }
+  if (!await confirmBox(t('settings.device_forget_title'), t('settings.device_forget_body'), t('settings.device_forget_yes'))) return;
+  try { await invoke('forget_device'); $('#d-settings').close(); info = await invoke('app_info'); show('welcome'); toast(t('settings.device_forgot')); }
+  catch (e) { fail(e); }
 });
 
 // ---------- ブラウザ拡張機能 ----------
 async function refreshBrowser() {
   const b = await invoke('browser_status');
-  $('#br-state').textContent = b.installed
-    ? '✓ ブラウザと接続済みです'
-    : '未接続です（アプリを更新・移動したあとは、もう一度接続してください）';
+  $('#br-state').textContent = b.installed ? t('settings.browser_connected') : t('settings.browser_not_connected');
   $('#b-browser-uninstall').hidden = !b.installed;
-  $('#br-ids').textContent = '登録済みの ID: ' + [b.dev_extension_id + '（開発版）', ...b.extra_extension_ids].join('、');
-  $('#br-approved').textContent = `確認済み: ${b.approved_sites} 件`;
-  const events = { filled: '入力', asked: '確認を表示', allowed: '許可', denied: '拒否', blocked: '連続要求のためロック', saved: '保存', updated: '更新', passkey_created: 'パスキーを作成', passkey_used: 'パスキーでログイン', totp: 'ワンタイムパスワードを入力' };
+  $('#br-ids').textContent = t('settings.browser_ids', {
+    ids: I18N.list([t('settings.browser_dev', { id: b.dev_extension_id }), ...b.extra_extension_ids]),
+  });
+  $('#br-approved').textContent = t('settings.browser_approved', { n: b.approved_sites });
   const log = await invoke('browser_log');
   $('#br-log').replaceChildren(...(log.length ? log : [null]).map(e => {
     const li = document.createElement('li');
     li.textContent = e
-      ? `${new Date(e.at * 1000).toLocaleTimeString()}　${events[e.event] || e.event}　${e.host}${e.title ? '　' + e.title : ''}`
-      : 'まだ要求はありません';
+      ? [new Date(e.at * 1000).toLocaleTimeString(I18N.lang), t('log.' + e.event), e.host, e.title].filter(Boolean).join('　')
+      : t('settings.browser_no_log');
     return li;
   }));
 }
 $('#b-browser-forget').addEventListener('click', async () => {
-  if (!await confirmBox('確認済みのサイトを取り消しますか？', '次にブラウザで項目を使うとき、サイトごとにもう一度確認します。', '取り消す')) return;
-  try { await invoke('browser_forget_approvals'); toast('取り消しました'); } catch (e) { toast(String(e), true); }
+  if (!await confirmBox(t('settings.forget_title'), t('settings.forget_body'), t('settings.forget_yes'))) return;
+  try { await invoke('browser_forget_approvals'); toast(t('settings.forget_done')); } catch (e) { fail(e); }
   refreshBrowser();
 });
 
@@ -472,10 +496,10 @@ async function askApproval() {
   const p = await invoke('browser_pending');
   if (!p || $('#v-main').hidden) return;
   approving = p;
-  $('#ap-what').textContent = p.passkey ? 'このサイトでパスキーを使いますか？' : 'このサイトでパスワードを使いますか？';
+  $('#ap-what').textContent = p.passkey ? t('approve.passkey') : t('approve.password');
   $('#ap-host').textContent = p.host;
   $('#ap-title').textContent = p.title;
-  $('#ap-user').textContent = p.username || '（なし）';
+  $('#ap-user').textContent = p.username || t('approve.none');
   if (!d.open) d.showModal();
 }
 $('#d-approve').addEventListener('close', async e => {
@@ -486,20 +510,20 @@ $('#d-approve').addEventListener('close', async e => {
   if (!p) return;
   try {
     await invoke('browser_approve', { allow, itemId: p.item_id, origin: p.origin });
-    if (allow) toast('許可しました。ブラウザでもう一度項目を選んでください');
-  } catch (err) { if (allow) toast(String(err), true); }
+    if (allow) toast(t('approve.allowed'));
+  } catch (err) { if (allow) fail(err); }
 });
 listen('browser-approval', askApproval);
 $('#b-browser-install').addEventListener('click', async () => {
   try {
     const browsers = await invoke('browser_install', { extensionId: $('#br-extid').value.trim() || null });
     $('#br-extid').value = '';
-    toast('接続しました: ' + browsers.join('、') + '（ブラウザを再起動すると確実です）');
-  } catch (e) { toast(String(e), true); }
+    toast(t('settings.browser_connected_toast', { browsers: I18N.list(browsers) }));
+  } catch (e) { fail(e); }
   refreshBrowser();
 });
 $('#b-browser-uninstall').addEventListener('click', async () => {
-  try { await invoke('browser_uninstall'); toast('接続を解除しました'); } catch (e) { toast(String(e), true); }
+  try { await invoke('browser_uninstall'); toast(t('settings.browser_disconnected_toast')); } catch (e) { fail(e); }
   refreshBrowser();
 });
 // 拡張機能から保存・更新されたら一覧を更新する
@@ -511,12 +535,12 @@ $('#f-import').addEventListener('change', async e => {
   const file = e.target.files[0];
   e.target.value = '';
   if (!file) return;
-  if (file.size > 20 * 1024 * 1024) return toast('ファイルが大きすぎます（20MB まで）', true);
+  if (file.size > 20 * 1024 * 1024) return toast(t('settings.import_too_big'), true);
   try {
     const [added, skipped] = await invoke('import_csv', { text: await file.text() });
-    toast(`${added} 件を取り込みました（重複で飛ばした項目 ${skipped} 件）。CSV ファイルは削除してください`);
+    toast(t('settings.import_done', { added, skipped }));
     await refreshList();
-  } catch (err) { toast(String(err), true); }
+  } catch (err) { fail(err); }
 });
 
-boot().catch(e => { document.body.textContent = '起動に失敗しました: ' + e; });
+boot().catch(e => { document.body.textContent = (typeof t === 'function' ? t('boot.failed', { error: tr(e) }) : 'Failed to start: ' + e); });

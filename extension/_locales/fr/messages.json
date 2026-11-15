@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "Fonctionne avec l'application 2password : remplit les connexions, enregistre identifiants, codes à usage unique et clés d'accès.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(aucun nom d'utilisateur)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "Ouvrir l'application"
+  },
+  "approve_title": {
+    "message": "Autorisez-le dans l'application 2password"
+  },
+  "approve_text": {
+    "message": "C'est la première fois que cet élément est utilisé sur ce site. Autorisez-le dans l'application, puis choisissez de nouveau l'élément."
+  },
+  "rate_limited_title": {
+    "message": "2password a été verrouillé"
+  },
+  "rate_limited_text": {
+    "message": "2password a été verrouillé, car de nombreuses requêtes sont arrivées en peu de temps."
+  },
+  "locked_title": {
+    "message": "2password est verrouillé"
+  },
+  "locked_text": {
+    "message": "Déverrouillez-le dans l'application."
+  },
+  "generate_title": {
+    "message": "Générer un mot de passe fort"
+  },
+  "generate_sub": {
+    "message": "Après l'envoi, on vous demandera s'il faut l'enregistrer"
+  },
+  "lookalike_title": {
+    "message": "Attention : ce n'est pas le site que vous avez enregistré"
+  },
+  "lookalike_note_title": {
+    "message": "Ressemble à « $1 », mais c'est un autre site",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "Cette page est $1. Ne saisissez pas ici le mot de passe de $2 ($3). Vérifiez attentivement l'adresse.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "Adresse différente de $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "Cette page est $1. Pour utiliser aussi l'élément ici, ajoutez cette adresse aux URL de l'élément dans l'application.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "Vous pouvez ajouter l'URL avec « Modifier » sur l'élément"
+  },
+  "idn_title": {
+    "message": "Attention : vérifiez l'adresse"
+  },
+  "idn_note_title": {
+    "message": "L'adresse contient des caractères inhabituels"
+  },
+  "idn_note_text": {
+    "message": "Cette page ($1) est peut-être un faux site utilisant des caractères qui se ressemblent.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "Cette page n'est pas chiffrée (http)"
+  },
+  "insecure_text": {
+    "message": "Les mots de passe pourraient être lus pendant leur transmission ; rien n'est donc rempli sur cette page."
+  },
+  "locked_menu_open": {
+    "message": "Ouvrir l'application et déverrouiller"
+  },
+  "locked_menu_sub": {
+    "message": "Après le déverrouillage, cliquez de nouveau sur ce champ"
+  },
+  "save_title": {
+    "message": "Enregistrer cet identifiant ?"
+  },
+  "update_title": {
+    "message": "Mettre à jour le mot de passe ?"
+  },
+  "save_later": {
+    "message": "Pas maintenant"
+  },
+  "save_button": {
+    "message": "Enregistrer"
+  },
+  "update_button": {
+    "message": "Mettre à jour"
+  },
+  "update_text": {
+    "message": "Remplace le mot de passe de « $1 » par le nouveau.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password est verrouillé. Déverrouillez-le pour enregistrer."
+  },
+  "saving": {
+    "message": "Enregistrement…"
+  },
+  "saved": {
+    "message": "Enregistré dans 2password"
+  },
+  "save_failed": {
+    "message": "Enregistrement impossible"
+  },
+  "otp_fill": {
+    "message": "Remplir le mot de passe à usage unique"
+  },
+  "otp_filled_title": {
+    "message": "Mot de passe à usage unique rempli"
+  },
+  "otp_filled_text": {
+    "message": "2password a saisi le code de vérification pour $1.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "Utiliser une autre méthode"
+  },
+  "pk_waiting": {
+    "message": "En attente du déverrouillage…"
+  },
+  "pk_locked_text": {
+    "message": "Pour utiliser 2password pour les clés d'accès, déverrouillez-le dans l'application."
+  },
+  "pk_save_title": {
+    "message": "Enregistrer la clé d'accès dans 2password ?"
+  },
+  "pk_save_text": {
+    "message": "Une fois enregistrée, vous pourrez l'utiliser sur vos autres ordinateurs équipés de 2password."
+  },
+  "pk_save": {
+    "message": "Enregistrer dans 2password"
+  },
+  "pk_creating": {
+    "message": "Création…"
+  },
+  "pk_save_failed": {
+    "message": "Impossible d'enregistrer la clé d'accès"
+  },
+  "pk_save_failed_text": {
+    "message": "Passage à la méthode du navigateur."
+  },
+  "pk_login_title": {
+    "message": "Se connecter avec une clé d'accès"
+  },
+  "pk_login_text": {
+    "message": "Choisissez un compte."
+  },
+  "popup_checking": {
+    "message": "Vérification…"
+  },
+  "popup_not_running": {
+    "message": "L'application 2password n'est pas lancée."
+  },
+  "popup_not_running_text": {
+    "message": "Lancez l'application, déverrouillez-la, puis rouvrez ceci."
+  },
+  "popup_not_allowed": {
+    "message": "Cette extension n'est pas enregistrée dans l'application."
+  },
+  "popup_not_allowed_step1": {
+    "message": "Ouvrez « Réglages » dans l'application 2password"
+  },
+  "popup_not_allowed_step2": {
+    "message": "Saisissez cet ID sous « Indiquer un ID d'extension »"
+  },
+  "popup_not_allowed_step3": {
+    "message": "Cliquez sur « Connecter aux navigateurs »"
+  },
+  "popup_id": {
+    "message": "ID : $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "Non connecté à l'application 2password."
+  },
+  "popup_no_host_step1": {
+    "message": "Lancez l'application 2password"
+  },
+  "popup_no_host_step2": {
+    "message": "Cliquez sur « Réglages » → « Extension de navigateur » → « Connecter aux navigateurs »"
+  },
+  "popup_no_host_step3": {
+    "message": "Redémarrez le navigateur"
+  },
+  "popup_ext_id": {
+    "message": "ID de cette extension : $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "Créez un coffre dans l'application 2password."
+  },
+  "popup_locked": {
+    "message": "2password est verrouillé."
+  },
+  "popup_unlock": {
+    "message": "Ouvrir l'application et déverrouiller"
+  },
+  "popup_lookalike": {
+    "message": "Attention : cette page ressemble à « $1 », que vous avez enregistré, mais c'est un autre site.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "Ne saisissez pas ici le mot de passe de $1 ($2). Vérifiez attentivement l'adresse.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "Cette adresse est différente de $1 ($2), que vous avez enregistré.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "Pour utiliser aussi l'élément ici, ajoutez l'adresse de cette page aux URL de l'élément dans l'application."
+  },
+  "popup_empty": {
+    "message": "Aucun élément pour ce site pour l'instant."
+  },
+  "popup_empty_text": {
+    "message": "Lorsque vous vous connectez, on vous demande s'il faut enregistrer l'identifiant. Si vous ajoutez un élément avec « + Ajouter » dans l'application, saisissez l'adresse de ce site dans le champ URL."
+  },
+  "popup_click_to_fill": {
+    "message": "Cliquez sur un élément pour le remplir sur cette page."
+  },
+  "err_no_match": {
+    "message": "Aucun élément ne correspond à ce site"
+  },
+  "err_insecure": {
+    "message": "Indisponible sur les pages non chiffrées (http)"
+  },
+  "err_bad_origin": {
+    "message": "Indisponible sur cette page."
+  },
+  "err_bad_rp": {
+    "message": "Cette page ne peut pas utiliser de clé d'accès pour ce nom de site"
+  },
+  "err_expired": {
+    "message": "Enregistrement impossible, car trop de temps s'est écoulé"
+  },
+  "err_no_form": {
+    "message": "Aucun champ de saisie trouvé sur cette page"
+  },
+  "err_no_content": {
+    "message": "Rechargez la page et réessayez"
+  },
+  "err_navigated": {
+    "message": "La page a changé ; rien n'a été rempli"
+  },
+  "err_exists": {
+    "message": "Une clé d'accès pour ce site est déjà enregistrée"
+  },
+  "err_locked": {
+    "message": "2password est verrouillé"
+  },
+  "err_rate_limited": {
+    "message": "2password a été verrouillé, car de nombreuses requêtes sont arrivées en peu de temps"
+  },
+  "err_needs_approval": {
+    "message": "C'est la première utilisation sur ce site. Autorisez-la dans l'application 2password, puis choisissez de nouveau"
+  },
+  "err_bad_request": {
+    "message": "La requête n'a pas pu être traitée"
+  },
+  "err_failed": {
+    "message": "L'opération a échoué"
+  }
+}

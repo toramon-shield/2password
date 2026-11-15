@@ -19,6 +19,7 @@
 [![Rust](https://img.shields.io/badge/Rust-1.90%2B-orange?logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS-lightgrey)](docs/INSTALL.md)
+[![Languages](https://img.shields.io/badge/Languages-15-0d9488)](docs/I18N.md)
 [![Status](https://img.shields.io/badge/Status-学習用・未監査-yellow)](#-セキュリティ)
 [![Toramon Shield](https://img.shields.io/badge/Toramon_Shield-日本の個人情報を守る-8A2BE2)](#-toramon-shield-について)
 
@@ -136,6 +137,7 @@
 | 🔢 | **2 段階認証のコードも入力** | 認証アプリと同じ 6 桁のコード（TOTP）を作ります。項目を 1 回選べば、ID・パスワードに続いて認証コードの欄にも入力します。設定キーは拡張機能に渡しません |
 | 🗝️ | **パスキーに対応** | パスキーの秘密鍵を保管庫に暗号化して保存し、署名はアプリの中だけで行います。パスキーはサイトに結びつくので、偽サイトでは使えません |
 | 🎣 | **偽サイトに渡さない** | 保存したときとホスト名が一致するページにしか入力しません。初めてのサイトではアプリで確認し、似た名前の偽サイトでは注意を出します |
+| 🌐 | **15 言語で表示** | 日本語・English・简体中文・Español・Português・Français・Italiano・Deutsch・Русский・Türkçe・العربية・हिन्दी・ไทย・Tiếng Việt・Bahasa Melayu。パソコンとブラウザの言語に合わせて切り替わり、設定でも選べます |
 | 📦 | **乗り換えやすい** | 1Password・Chrome・Edge・Bitwarden が書き出した CSV を、そのまま取り込めます |
 | 🖥️ | **CLI とデスクトップアプリ** | コマンド `2pw` と、Windows / macOS 用のアプリ（Tauri 2）。暗号のコードは共通です |
 | 🎓 | **学べる** | 設計書、図解スライド、攻撃デモ、解説ドキュメントつき。「なぜ安全か」を自分の手で確かめられます |
@@ -407,6 +409,7 @@ Google Drive 版を作る場合は、リポジトリの **Settings → Secrets a
 | 📥 [docs/INSTALL.md](docs/INSTALL.md) | 一般の方向けのインストールと使い方 |
 | 🧩 [docs/EXTENSION.md](docs/EXTENSION.md) | ブラウザ拡張機能の入れ方、2 段階認証のコードとパスキーの使い方、1Password などからの移行、しくみと安全性 |
 | 🔏 [docs/PRIVACY.md](docs/PRIVACY.md) | プライバシーポリシー |
+| 🌐 [docs/I18N.md](docs/I18N.md) | 表示言語のしくみ、翻訳の直し方・言語の足し方 |
 | 🔐 [SECURITY.md](SECURITY.md) | 守れること・守れないこと、脆弱性の報告方法 |
 | 📐 [2password-design-and-prompt.md](2password-design-and-prompt.md) | 設計書と脅威モデル |
 | 🎞️ [2password-handson.html](2password-handson.html) | 図解スライド（ブラウザで開く。暗号化と改ざん検知のライブデモつき） |
@@ -599,6 +602,7 @@ OAuth 同意画面が「テスト中」のためです。Google Cloud で「本�
 - [x] パスキー（サイトと鍵を暗号的に結びつけ、偽サイトでは使えないようにする）
 - [ ] パスキーの入力欄の候補方式（Conditional UI）、項目ごとの「毎回確認」
 - [x] 2 段階認証のコード（TOTP）の生成と入力
+- [x] 多言語対応（15 言語）
 - [ ] 共有（HPKE）、漏えいチェック
 - [ ] 第三者によるセキュリティレビュー
 

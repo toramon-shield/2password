@@ -182,6 +182,7 @@ async fn create_account(
     folder: Option<String>,
     password: String,
     password2: String,
+    kit: Option<vault_client::kit::KitText>,
 ) -> Res<CreateResult> {
     let p1 = SecretString::from(password);
     let p2 = SecretString::from(password2);
@@ -194,7 +195,11 @@ async fn create_account(
     run(move || {
         vault_client::check_new_password(&p1, &p2, false).map_err(err)?;
         let kit_path = docs.join("2password-emergency-kit.html");
-        let r = vault_client::init_account(choice(&mode, folder), &p1, &kit_path).map_err(err)?;
+        let r = match &kit {
+            Some(text) => vault_client::init_account_with_kit(choice(&mode, folder), &p1, &kit_path, text),
+            None => vault_client::init_account(choice(&mode, folder), &p1, &kit_path),
+        }
+        .map_err(err)?;
         // 画面側にパスワードを持たせないよう、ここで解除しておく
         *st.kit_path.lock().unwrap() = Some(kit_path.clone());
         *st.session.lock().unwrap() = Some(Session::unlock(&p1).map_err(err)?);

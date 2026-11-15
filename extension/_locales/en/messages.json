@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "Works with the 2password desktop app to fill sign-in pages, save logins, enter one-time passwords, and store passkeys.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(no username)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "Open the app"
+  },
+  "approve_title": {
+    "message": "Allow it in the 2password app"
+  },
+  "approve_text": {
+    "message": "This is the first time this item is used on this site. Allow it in the app, then choose the item again."
+  },
+  "rate_limited_title": {
+    "message": "2password is now locked"
+  },
+  "rate_limited_text": {
+    "message": "2password was locked because many requests arrived in a short time."
+  },
+  "locked_title": {
+    "message": "2password is locked"
+  },
+  "locked_text": {
+    "message": "Unlock it in the app."
+  },
+  "generate_title": {
+    "message": "Generate a strong password"
+  },
+  "generate_sub": {
+    "message": "You'll be asked whether to save it after submitting"
+  },
+  "lookalike_title": {
+    "message": "Warning: this is not the site you saved"
+  },
+  "lookalike_note_title": {
+    "message": "Looks like “$1”, but it is a different site",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "This page is $1. Do not enter the password for $2 ($3) here. Check the address carefully.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "Different address from $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "This page is $1. To use the item here too, add this address to the item's URLs in the app.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "You can add the URL with “Edit” on the item"
+  },
+  "idn_title": {
+    "message": "Warning: check the address"
+  },
+  "idn_note_title": {
+    "message": "The address contains unusual characters"
+  },
+  "idn_note_text": {
+    "message": "This page ($1) may be a fake site that uses look-alike characters.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "This page is not encrypted (http)"
+  },
+  "insecure_text": {
+    "message": "Passwords could be read in transit, so nothing is filled on this page."
+  },
+  "locked_menu_open": {
+    "message": "Open the app and unlock"
+  },
+  "locked_menu_sub": {
+    "message": "After unlocking, click this field again"
+  },
+  "save_title": {
+    "message": "Save this login?"
+  },
+  "update_title": {
+    "message": "Update the password?"
+  },
+  "save_later": {
+    "message": "Not now"
+  },
+  "save_button": {
+    "message": "Save"
+  },
+  "update_button": {
+    "message": "Update"
+  },
+  "update_text": {
+    "message": "Replaces the password of “$1” with the new one.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password is locked. Unlock it to save."
+  },
+  "saving": {
+    "message": "Saving…"
+  },
+  "saved": {
+    "message": "Saved to 2password"
+  },
+  "save_failed": {
+    "message": "Could not save"
+  },
+  "otp_fill": {
+    "message": "Fill one-time password"
+  },
+  "otp_filled_title": {
+    "message": "One-time password filled"
+  },
+  "otp_filled_text": {
+    "message": "2password entered the verification code for $1.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "Use another method"
+  },
+  "pk_waiting": {
+    "message": "Waiting for unlock…"
+  },
+  "pk_locked_text": {
+    "message": "To use 2password for passkeys, unlock it in the app."
+  },
+  "pk_save_title": {
+    "message": "Save the passkey to 2password?"
+  },
+  "pk_save_text": {
+    "message": "Once saved, you can use it on your other computers with 2password."
+  },
+  "pk_save": {
+    "message": "Save to 2password"
+  },
+  "pk_creating": {
+    "message": "Creating…"
+  },
+  "pk_save_failed": {
+    "message": "Could not save the passkey"
+  },
+  "pk_save_failed_text": {
+    "message": "Switching to the browser's method."
+  },
+  "pk_login_title": {
+    "message": "Sign in with a passkey"
+  },
+  "pk_login_text": {
+    "message": "Choose an account."
+  },
+  "popup_checking": {
+    "message": "Checking…"
+  },
+  "popup_not_running": {
+    "message": "The 2password app is not running."
+  },
+  "popup_not_running_text": {
+    "message": "Start the app, unlock it, and open this again."
+  },
+  "popup_not_allowed": {
+    "message": "This extension is not registered with the app."
+  },
+  "popup_not_allowed_step1": {
+    "message": "Open “Settings” in the 2password app"
+  },
+  "popup_not_allowed_step2": {
+    "message": "Enter this ID under “Specify an extension ID”"
+  },
+  "popup_not_allowed_step3": {
+    "message": "Click “Connect to browsers”"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "Not connected to the 2password app."
+  },
+  "popup_no_host_step1": {
+    "message": "Start the 2password app"
+  },
+  "popup_no_host_step2": {
+    "message": "Click “Settings” → “Browser extension” → “Connect to browsers”"
+  },
+  "popup_no_host_step3": {
+    "message": "Restart the browser"
+  },
+  "popup_ext_id": {
+    "message": "This extension's ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "Create a vault in the 2password app."
+  },
+  "popup_locked": {
+    "message": "2password is locked."
+  },
+  "popup_unlock": {
+    "message": "Open the app and unlock"
+  },
+  "popup_lookalike": {
+    "message": "Warning: this page looks like “$1”, which you saved, but it is a different site.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "Do not enter the password for $1 ($2) here. Check the address carefully.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "This address is different from $1 ($2), which you saved.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "To use the item here too, add this page's address to the item's URLs in the app."
+  },
+  "popup_empty": {
+    "message": "No items for this site yet."
+  },
+  "popup_empty_text": {
+    "message": "When you sign in, you'll be asked whether to save the login. When adding with “+ Add” in the app, enter this site's address in the URL field."
+  },
+  "popup_click_to_fill": {
+    "message": "Click an item to fill it in on this page."
+  },
+  "err_no_match": {
+    "message": "No item matches this site"
+  },
+  "err_insecure": {
+    "message": "Not available on unencrypted (http) pages"
+  },
+  "err_bad_origin": {
+    "message": "Not available on this page."
+  },
+  "err_bad_rp": {
+    "message": "This page cannot use a passkey for this site name"
+  },
+  "err_expired": {
+    "message": "Could not save because too much time has passed"
+  },
+  "err_no_form": {
+    "message": "No input fields were found on this page"
+  },
+  "err_no_content": {
+    "message": "Reload the page and try again"
+  },
+  "err_navigated": {
+    "message": "The page changed, so nothing was filled"
+  },
+  "err_exists": {
+    "message": "A passkey for this site is already saved"
+  },
+  "err_locked": {
+    "message": "2password is locked"
+  },
+  "err_rate_limited": {
+    "message": "2password was locked because many requests arrived in a short time"
+  },
+  "err_needs_approval": {
+    "message": "This is the first time on this site. Allow it in the 2password app, then choose again"
+  },
+  "err_bad_request": {
+    "message": "The request could not be processed"
+  },
+  "err_failed": {
+    "message": "The operation failed"
+  }
+}

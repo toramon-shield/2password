@@ -136,7 +136,7 @@ async function onContentMessage(msg, sender) {
 
     case 'save-confirm': {
       const p = await getFresh(pendingKey(tabId));
-      if (!p) return { ok: false, error: 'expired', message: '時間が経ったため保存できませんでした' };
+      if (!p) return { ok: false, error: 'expired' };
       const res = p.updateId
         ? await native({ type: 'update', origin: p.origin, id: p.updateId, password: p.password })
         : await native({ type: 'save', origin: p.origin, username: p.username, password: p.password });
@@ -171,7 +171,7 @@ async function onPopupMessage(msg) {
         const done = await chrome.tabs.sendMessage(tab.id, { type: 'fill-now', origin, username: res.username, password: res.password, totp: Boolean(res.totp) }, { frameId: 0 });
         return done || { ok: false, error: 'no_form' };
       } catch {
-        return { ok: false, error: 'no_content', message: 'ページを再読み込みしてからもう一度試してください' };
+        return { ok: false, error: 'no_content' };
       }
     }
   }

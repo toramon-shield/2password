@@ -11,6 +11,12 @@
   if (window.top !== window) return; // 最上位のフレームだけ
 
   const send = msg => chrome.runtime.sendMessage(msg).catch(() => ({ ok: false, error: 'no_background' }));
+  // 文言は _locales/<言語>/messages.json にある（ブラウザの表示言語で選ばれる）
+  const t = (key, ...subs) => chrome.i18n.getMessage(key, subs.map(String)) || key;
+  /** アプリから返ったエラーを、コードから訳す（アプリが返す文は日本語なので使わない） */
+  const errText = res => chrome.i18n.getMessage('err_' + (res && res.error)) || t('err_failed');
+  const DIR = chrome.i18n.getMessage('@@bidi_dir') || 'ltr';
+  const LANG = chrome.i18n.getUILanguage();
 
   // ---------------- 入力欄の判定 ----------------
 
@@ -81,7 +87,7 @@
     .item:hover, .item:focus-visible { background: #eef2ff; }
     .item b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .item span { display: block; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .banner { top: 16px; right: 16px; width: 320px; padding: 14px; }
+    .banner { top: 16px; inset-inline-end: 16px; width: 320px; padding: 14px; }
     .banner h1 { margin: 0 0 6px; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .banner p { margin: 0 0 12px; font-size: 13px; color: #374151; word-break: break-all; }
     .row { display: flex; gap: 8px; justify-content: flex-end; }
@@ -108,6 +114,8 @@
 
   function makeLayer() {
     const host = document.createElement('div');
+    host.lang = LANG;
+    host.dir = DIR;
     const root = host.attachShadow({ mode: 'closed' });
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(CSS);
@@ -151,6 +159,7 @@
     const h = el('h1');
     h.append(el('span', 'logo', '2P'), el('span', '', title));
     const p = el('p', '', text);
+    p.style.whiteSpace = 'pre-line';
     if (warn) p.style.color = '#dc2626';
     box.append(h, p);
     root.append(box);
@@ -158,9 +167,9 @@
   }
   /** パスワードを受け取れなかった理由を知らせる */
   function explain(res) {
-    if (res.error === 'needs_approval') showNotice('2password アプリで許可してください', 'このサイトで使うのは初めてです。アプリの画面で許可してから、もう一度項目を選んでください。');
-    else if (res.error === 'rate_limited') showNotice('2password をロックしました', res.message || '短い時間に要求が続きました。', true);
-    else if (res.error === 'locked') showNotice('2password はロック中です', 'アプリでロックを解除してください。');
+    if (res.error === 'needs_approval') showNotice(t('approve_title'), t('approve_text'));
+    else if (res.error === 'rate_limited') showNotice(t('rate_limited_title'), t('rate_limited_text'), true);
+    else if (res.error === 'locked') showNotice(t('locked_title'), t('locked_text'));
   }
 
   // ---------------- 候補の一覧 ----------------
@@ -200,7 +209,7 @@
             if (got.totp) { otpArmed = true; setTimeout(tryOtp, 600); }
           } else { cache = null; explain(got); }
         });
-        b.append(el('b', '', it.title), el('span', '', it.username || '（ユーザー名なし）'));
+        b.append(el('b', '', it.title), el('span', '', it.username || t('no_username')));
         rows.push(b);
       }
       // 新しいパスワードを決める欄では、強いパスワードの生成も出す
@@ -212,34 +221,31 @@
           if (!got.ok) return;
           inputsIn(scopeOf(field)).filter(isPassword).forEach(p => setValue(p, got.password));
         });
-        b.append(el('b', '', '強いパスワードを作って入力'), el('span', '', '送信後に、保存するか確認します'));
+        b.append(el('b', '', t('generate_title')), el('span', '', t('generate_sub')));
         rows.push(b);
       }
       // 一致する項目がないとき：保存済みのサイトに似ていれば注意する（偽サイト対策）
       const rel = !res.items.length && res.related;
       if (rel && rel.kind === 'lookalike') {
-        title = '注意：保存済みのサイトとは別のサイトです';
-        rows.push(note('warn', `「${rel.host}」に似ていますが、別のサイトです`,
-          `このページは ${location.host} です。${rel.host}（${rel.title}）のパスワードを、ここに入力しないでください。アドレスをよく確かめてください。`));
+        title = t('lookalike_title');
+        rows.push(note('warn', t('lookalike_note_title', rel.host),
+          t('lookalike_note_text', location.host, rel.host, rel.title)));
       } else if (rel && rel.kind === 'same_site' && targets.pass) {
-        rows.push(note('', `${rel.host}（${rel.title}）とはアドレスが違います`,
-          `このページは ${location.host} です。ここでも使うには、アプリで項目の URL にこのアドレスを追加してください。`));
+        rows.push(note('', t('same_site_title', rel.host, rel.title), t('same_site_text', location.host)));
         const b = button('item', () => { closeMenu(); cache = null; send({ type: 'focus' }); });
-        b.append(el('b', '', 'アプリを開く'), el('span', '', '項目の「編集」から URL を追加できます'));
+        b.append(el('b', '', t('open_app')), el('span', '', t('open_app_sub_url')));
         rows.push(b);
       } else if (!res.items.length && res.idn && targets.pass) {
-        title = '注意：アドレスを確かめてください';
-        rows.push(note('warn', 'アドレスに特殊な文字が含まれています',
-          `このページ（${location.host}）は、見た目がよく似た別の文字を使った偽サイトの可能性があります。`));
+        title = t('idn_title');
+        rows.push(note('warn', t('idn_note_title'), t('idn_note_text', location.host)));
       }
     } else if (res.error === 'insecure' && isPassword(field)) {
       title = '2password';
-      rows.push(note('warn', '暗号化されていないページです（http）',
-        '通信の途中でパスワードを読まれるおそれがあるため、このページには入力しません。'));
+      rows.push(note('warn', t('insecure_title'), t('insecure_text')));
     } else if (res.error === 'locked' && isPassword(field)) {
-      title = '2password はロック中です';
+      title = t('locked_title');
       const b = button('item', () => { closeMenu(); cache = null; send({ type: 'focus' }); });
-      b.append(el('b', '', 'アプリを開いてロックを解除'), el('span', '', '解除したら、もう一度この欄をクリックしてください'));
+      b.append(el('b', '', t('locked_menu_open')), el('span', '', t('locked_menu_sub')));
       rows.push(b);
     }
     if (rows.length) showMenu(field, title, rows);
@@ -252,7 +258,9 @@
     const r = field.getBoundingClientRect();
     const width = Math.max(240, Math.min(r.width, 360));
     box.style.width = width + 'px';
-    box.style.left = Math.max(8, Math.min(r.left, innerWidth - width - 8)) + 'px';
+    // 右から左に書く言語では、欄の右端にそろえる
+    const start = DIR === 'rtl' ? r.right - width : r.left;
+    box.style.left = Math.max(8, Math.min(start, innerWidth - width - 8)) + 'px';
     if (innerHeight - r.bottom > 180) box.style.top = r.bottom + 4 + 'px';
     else box.style.bottom = innerHeight - r.top + 4 + 'px';
     box.append(head(title), ...rows);
@@ -296,7 +304,7 @@
     if (targets && msg.totp) { otpArmed = true; setTimeout(tryOtp, 600); }
     sendResponse(targets && fill(targets, msg.username, msg.password)
       ? { ok: true }
-      : { ok: false, error: 'no_form', message: 'このページに入力欄が見つかりません' });
+      : { ok: false, error: 'no_form' });
   });
 
   // ---------------- 送信の検出と、保存の確認 ----------------
@@ -345,29 +353,29 @@
     banner = host;
     const box = el('div', 'box banner');
     const h = el('h1');
-    const who = p.username ? `${p.username}（${p.host}）` : p.host;
+    const who = p.username ? t('who', p.username, p.host) : p.host;
     const row = el('div', 'row');
     const later = button('btn', () => { closeBanner(); send({ type: 'save-dismiss' }); });
-    later.textContent = '今回はしない';
+    later.textContent = t('save_later');
 
     if (p.kind === 'locked') {
-      h.append(el('span', 'logo', '2P'), el('span', '', 'ログイン情報を保存しますか？'));
+      h.append(el('span', 'logo', '2P'), el('span', '', t('save_title')));
       const open = button('btn primary', () => { send({ type: 'focus' }); setTimeout(showPending, 4000); });
-      open.textContent = 'アプリを開く';
-      box.append(h, el('p', '', `${who}\n2password がロック中です。解除すると保存できます。`), row);
+      open.textContent = t('open_app');
+      box.append(h, el('p', '', `${who}\n${t('save_locked_text')}`), row);
       row.append(later, open);
     } else {
-      h.append(el('span', 'logo', '2P'), el('span', '', p.kind === 'update' ? 'パスワードを更新しますか？' : 'ログイン情報を保存しますか？'));
+      h.append(el('span', 'logo', '2P'), el('span', '', p.kind === 'update' ? t('update_title') : t('save_title')));
       const save = button('btn primary', async () => {
-        save.textContent = '保存中…';
+        save.textContent = t('saving');
         const done = await send({ type: 'save-confirm' });
         cache = null;
-        h.lastChild.textContent = done.ok ? '2password に保存しました' : (done.message || '保存できませんでした');
+        h.lastChild.textContent = done.ok ? t('saved') : `${t('save_failed')}: ${errText(done)}`;
         row.remove();
         setTimeout(closeBanner, done.ok ? 1800 : 5000);
       });
-      save.textContent = p.kind === 'update' ? '更新する' : '保存する';
-      box.append(h, el('p', '', p.kind === 'update' ? `${who}\n「${p.title}」のパスワードを新しいものに置き換えます。` : who), row);
+      save.textContent = p.kind === 'update' ? t('update_button') : t('save_button');
+      box.append(h, el('p', '', p.kind === 'update' ? `${who}\n${t('update_text', p.title)}` : who), row);
       row.append(later, save);
     }
     box.querySelector('p').style.whiteSpace = 'pre-line';
@@ -380,7 +388,7 @@
   // その項目のコードを入力する。コードはデスクトップアプリが作り、設定キーは拡張機能に渡らない。
   // それ以外のときは、欄をクリックして項目を選んだときだけ入力する。
 
-  const OTP_HINT = /otp|totp|2fa|mfa|two.?factor|one.?time|verif|auth.?code|security.?code|passcode|認証コード|確認コード|ワンタイム|セキュリティコード/i;
+  const OTP_HINT = /otp|totp|2fa|mfa|two.?factor|one.?time|verif|auth.?code|security.?code|passcode|認証コード|確認コード|ワンタイム|セキュリティコード|验证码|驗證碼|código de verificación|código de verificação|codice di verifica|code de vérification|bestätigungscode|sicherheitscode|код подтверждения|doğrulama kodu|kod pengesahan|mã xác minh|รหัสยืนยัน|รหัส otp|सत्यापन कोड|رمز التحقق/i;
   function isOtp(el) {
     if (!(el instanceof HTMLInputElement) || !visible(el)) return false;
     if (!['text', 'tel', 'number', 'password', ''].includes(el.type || '')) return false;
@@ -412,7 +420,7 @@
     if (res.ok) {
       if (!field.isConnected || field.value) return;
       fillOtp(field, res.code);
-      showNotice('ワンタイムパスワードを入力しました', `2password が ${location.host} の認証コードを入力しました。`);
+      showNotice(t('otp_filled_title'), t('otp_filled_text', location.host));
     } else if (res.error !== 'none') {
       explain(res);
     }
@@ -437,7 +445,7 @@
         if (got.ok) fillOtp(field, got.code);
         else { cache = null; explain(got); }
       });
-      b.append(el('b', '', 'ワンタイムパスワードを入力'), el('span', '', `${it.title}　${it.username || ''}`));
+      b.append(el('b', '', t('otp_fill')), el('span', '', [it.title, it.username].filter(Boolean).join(' · ')));
       return b;
     });
     if (rows.length) showMenu(field, '2password', rows);
@@ -488,12 +496,12 @@
     b.textContent = label;
     return b;
   };
-  const pkOther = id => pkButton('btn', 'ほかの方法を使う', () => { pkClose(); pkReply(id, { action: 'native' }); });
+  const pkOther = id => pkButton('btn', t('pk_other'), () => { pkClose(); pkReply(id, { action: 'native' }); });
 
   /** ロック中：アプリを開いてもらい、解除されたら続きを行う */
   function pkLocked(id, retry) {
-    const open = pkButton('btn primary', 'アプリを開く', async () => {
-      open.textContent = '解除を待っています…';
+    const open = pkButton('btn primary', t('open_app'), async () => {
+      open.textContent = t('pk_waiting');
       send({ type: 'focus' });
       for (let i = 0; i < 60; i++) {
         await new Promise(r => setTimeout(r, 1500));
@@ -503,25 +511,25 @@
       }
       pkGiveUp();
     });
-    pkShow(id, '2password はロック中です', 'パスキーに 2password を使うには、アプリでロックを解除してください。', [], [pkOther(id), open]);
+    pkShow(id, t('locked_title'), t('pk_locked_text'), [], [pkOther(id), open]);
   }
 
   async function pkCreate(id, d) {
     const st = await send({ type: 'status' });
     if (!st.ok || !st.configured) return pkReply(id, { action: 'native' });
     if (st.locked) return pkLocked(id, () => pkCreate(id, d));
-    const save = pkButton('btn primary', '2password に保存', async () => {
-      save.textContent = '作成中…';
+    const save = pkButton('btn primary', t('pk_save'), async () => {
+      save.textContent = t('pk_creating');
       const res = await send({ type: 'passkey-create', data: d });
       pkClose();
       if (res.ok) return pkReply(id, { action: 'done', credential: res });
-      if (res.error === 'exists') return pkReply(id, { action: 'error', name: 'InvalidStateError', message: res.message });
+      if (res.error === 'exists') return pkReply(id, { action: 'error', name: 'InvalidStateError', message: errText(res) });
       explain(res);
-      if (res.error !== 'locked' && res.error !== 'rate_limited') showNotice('パスキーを保存できませんでした', res.message || 'ブラウザの方法に切り替えます。', true);
+      if (res.error !== 'locked' && res.error !== 'rate_limited') showNotice(t('pk_save_failed'), `${errText(res)}\n${t('pk_save_failed_text')}`, true);
       pkReply(id, { action: 'native' });
     });
-    const who = d.user_name ? `${d.user_name}（${location.host}）` : location.host;
-    pkShow(id, 'パスキーを 2password に保存しますか？', `${who}\n保存すると、2password を入れたほかのパソコンでも使えます。`, [], [pkOther(id), save]);
+    const who = d.user_name ? t('who', d.user_name, location.host) : location.host;
+    pkShow(id, t('pk_save_title'), `${who}\n${t('pk_save_text')}`, [], [pkOther(id), save]);
   }
 
   async function pkGet(id, d) {
@@ -537,13 +545,13 @@
         if (got.error === 'needs_approval') return;
         pkClose();
         pkReply(id, got.error === 'rate_limited'
-          ? { action: 'error', name: 'NotAllowedError', message: got.message }
+          ? { action: 'error', name: 'NotAllowedError', message: errText(got) }
           : { action: 'native' });
       });
-      b.append(el('b', '', it.title), el('span', '', it.username || '（ユーザー名なし）'));
+      b.append(el('b', '', it.title), el('span', '', it.username || t('no_username')));
       return b;
     });
-    pkShow(id, 'パスキーでログイン', `${location.host}\n使うアカウントを選んでください。`, rows, [pkOther(id)]);
+    pkShow(id, t('pk_login_title'), `${location.host}\n${t('pk_login_text')}`, rows, [pkOther(id)]);
   }
 
   addEventListener('message', e => {

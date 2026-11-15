@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "يعمل مع تطبيق 2password لملء صفحات تسجيل الدخول وحفظ بيانات الدخول وإدخال كلمات المرور لمرة واحدة وحفظ مفاتيح المرور.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(بلا اسم مستخدم)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "فتح التطبيق"
+  },
+  "approve_title": {
+    "message": "اسمح بذلك في تطبيق 2password"
+  },
+  "approve_text": {
+    "message": "هذه أول مرة يُستخدم فيها هذا العنصر على هذا الموقع. اسمح بذلك في التطبيق، ثم اختر العنصر مرة أخرى."
+  },
+  "rate_limited_title": {
+    "message": "تم قفل 2password"
+  },
+  "rate_limited_text": {
+    "message": "تم قفل 2password لأن طلبات كثيرة وصلت في وقت قصير."
+  },
+  "locked_title": {
+    "message": "2password مقفل"
+  },
+  "locked_text": {
+    "message": "افتح القفل من التطبيق."
+  },
+  "generate_title": {
+    "message": "توليد كلمة مرور قوية"
+  },
+  "generate_sub": {
+    "message": "بعد الإرسال سيُطلب منك تأكيد حفظها"
+  },
+  "lookalike_title": {
+    "message": "تحذير: هذا ليس الموقع الذي حفظته"
+  },
+  "lookalike_note_title": {
+    "message": "يشبه «$1»، لكنه موقع مختلف",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "هذه الصفحة هي $1. لا تُدخل هنا كلمة مرور $2 ($3). تحقق من العنوان بعناية.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "عنوان مختلف عن $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "هذه الصفحة هي $1. لاستخدام العنصر هنا أيضًا، أضف هذا العنوان إلى عناوين URL الخاصة بالعنصر في التطبيق.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "يمكنك إضافة URL عبر «تعديل» في العنصر"
+  },
+  "idn_title": {
+    "message": "تحذير: تحقق من العنوان"
+  },
+  "idn_note_title": {
+    "message": "يحتوي العنوان على أحرف غير مألوفة"
+  },
+  "idn_note_text": {
+    "message": "قد تكون هذه الصفحة ($1) موقعًا مزيفًا يستخدم أحرفًا متشابهة في الشكل.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "هذه الصفحة غير مشفّرة (http)"
+  },
+  "insecure_text": {
+    "message": "قد تُقرأ كلمات المرور أثناء النقل، لذا لا يُملأ أي شيء في هذه الصفحة."
+  },
+  "locked_menu_open": {
+    "message": "فتح التطبيق وفتح القفل"
+  },
+  "locked_menu_sub": {
+    "message": "بعد فتح القفل، انقر هذا الحقل مرة أخرى"
+  },
+  "save_title": {
+    "message": "حفظ بيانات الدخول هذه؟"
+  },
+  "update_title": {
+    "message": "تحديث كلمة المرور؟"
+  },
+  "save_later": {
+    "message": "ليس الآن"
+  },
+  "save_button": {
+    "message": "حفظ"
+  },
+  "update_button": {
+    "message": "تحديث"
+  },
+  "update_text": {
+    "message": "ستُستبدل كلمة مرور «$1» بالكلمة الجديدة.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password مقفل. افتح القفل للحفظ."
+  },
+  "saving": {
+    "message": "جارٍ الحفظ…"
+  },
+  "saved": {
+    "message": "تم الحفظ في 2password"
+  },
+  "save_failed": {
+    "message": "تعذّر الحفظ"
+  },
+  "otp_fill": {
+    "message": "ملء كلمة المرور لمرة واحدة"
+  },
+  "otp_filled_title": {
+    "message": "تم ملء كلمة المرور لمرة واحدة"
+  },
+  "otp_filled_text": {
+    "message": "أدخل 2password رمز التحقق لـ $1.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "استخدام طريقة أخرى"
+  },
+  "pk_waiting": {
+    "message": "في انتظار فتح القفل…"
+  },
+  "pk_locked_text": {
+    "message": "لاستخدام 2password لمفاتيح المرور، افتح القفل من التطبيق."
+  },
+  "pk_save_title": {
+    "message": "حفظ مفتاح المرور في 2password؟"
+  },
+  "pk_save_text": {
+    "message": "بعد الحفظ، يمكنك استخدامه على أجهزة الكمبيوتر الأخرى المثبّت عليها 2password."
+  },
+  "pk_save": {
+    "message": "حفظ في 2password"
+  },
+  "pk_creating": {
+    "message": "جارٍ الإنشاء…"
+  },
+  "pk_save_failed": {
+    "message": "تعذّر حفظ مفتاح المرور"
+  },
+  "pk_save_failed_text": {
+    "message": "جارٍ التبديل إلى طريقة المتصفح."
+  },
+  "pk_login_title": {
+    "message": "تسجيل الدخول بمفتاح مرور"
+  },
+  "pk_login_text": {
+    "message": "اختر حسابًا."
+  },
+  "popup_checking": {
+    "message": "جارٍ التحقق…"
+  },
+  "popup_not_running": {
+    "message": "تطبيق 2password لا يعمل."
+  },
+  "popup_not_running_text": {
+    "message": "شغّل التطبيق وافتح القفل، ثم افتح هذه النافذة مرة أخرى."
+  },
+  "popup_not_allowed": {
+    "message": "هذه الإضافة غير مسجّلة في التطبيق."
+  },
+  "popup_not_allowed_step1": {
+    "message": "افتح «الإعدادات» في تطبيق 2password"
+  },
+  "popup_not_allowed_step2": {
+    "message": "أدخل هذا الـ ID في «تحديد ID الإضافة»"
+  },
+  "popup_not_allowed_step3": {
+    "message": "انقر «الربط بالمتصفحات»"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "غير متصل بتطبيق 2password."
+  },
+  "popup_no_host_step1": {
+    "message": "شغّل تطبيق 2password"
+  },
+  "popup_no_host_step2": {
+    "message": "انقر «الإعدادات» ← «إضافة المتصفح» ← «الربط بالمتصفحات»"
+  },
+  "popup_no_host_step3": {
+    "message": "أعد تشغيل المتصفح"
+  },
+  "popup_ext_id": {
+    "message": "ID هذه الإضافة: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "أنشئ خزنة في تطبيق 2password."
+  },
+  "popup_locked": {
+    "message": "2password مقفل."
+  },
+  "popup_unlock": {
+    "message": "فتح التطبيق وفتح القفل"
+  },
+  "popup_lookalike": {
+    "message": "تحذير: هذه الصفحة تشبه «$1» الذي حفظته، لكنها موقع مختلف.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "لا تُدخل هنا كلمة مرور $1 ($2). تحقق من العنوان بعناية.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "هذا العنوان مختلف عن $1 ($2) الذي حفظته.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "لاستخدام العنصر هنا أيضًا، أضف عنوان هذه الصفحة إلى عناوين URL الخاصة بالعنصر في التطبيق."
+  },
+  "popup_empty": {
+    "message": "لا توجد عناصر لهذا الموقع بعد."
+  },
+  "popup_empty_text": {
+    "message": "عند تسجيل الدخول، سيُطلب منك تأكيد حفظ بيانات الدخول. عند الإضافة عبر «+ إضافة» في التطبيق، أدخل عنوان هذا الموقع في حقل URL."
+  },
+  "popup_click_to_fill": {
+    "message": "انقر عنصرًا لملئه في هذه الصفحة."
+  },
+  "err_no_match": {
+    "message": "لا يوجد عنصر يطابق هذا الموقع"
+  },
+  "err_insecure": {
+    "message": "غير متاح على الصفحات غير المشفّرة (http)"
+  },
+  "err_bad_origin": {
+    "message": "غير متاح على هذه الصفحة."
+  },
+  "err_bad_rp": {
+    "message": "لا يمكن لهذه الصفحة استخدام مفتاح مرور لاسم الموقع هذا"
+  },
+  "err_expired": {
+    "message": "تعذّر الحفظ لمرور وقت طويل"
+  },
+  "err_no_form": {
+    "message": "لم يُعثر على حقول إدخال في هذه الصفحة"
+  },
+  "err_no_content": {
+    "message": "أعد تحميل الصفحة وحاول مرة أخرى"
+  },
+  "err_navigated": {
+    "message": "تغيّرت الصفحة، لذا لم يُملأ شيء"
+  },
+  "err_exists": {
+    "message": "مفتاح مرور لهذا الموقع محفوظ بالفعل"
+  },
+  "err_locked": {
+    "message": "2password مقفل"
+  },
+  "err_rate_limited": {
+    "message": "تم قفل 2password لأن طلبات كثيرة وصلت في وقت قصير"
+  },
+  "err_needs_approval": {
+    "message": "هذه أول مرة على هذا الموقع. اسمح بذلك في تطبيق 2password، ثم اختر مرة أخرى"
+  },
+  "err_bad_request": {
+    "message": "تعذّرت معالجة الطلب"
+  },
+  "err_failed": {
+    "message": "فشلت العملية"
+  }
+}

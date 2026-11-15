@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "2password デスクトップアプリと連携して、ログイン画面への自動入力、ログイン情報の保存、ワンタイムパスワードの入力、パスキーの保管を行います。",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "（ユーザー名なし）"
+  },
+  "who": {
+    "message": "$1（$2）",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "アプリを開く"
+  },
+  "approve_title": {
+    "message": "2password アプリで許可してください"
+  },
+  "approve_text": {
+    "message": "このサイトで使うのは初めてです。アプリの画面で許可してから、もう一度項目を選んでください。"
+  },
+  "rate_limited_title": {
+    "message": "2password をロックしました"
+  },
+  "rate_limited_text": {
+    "message": "短い時間に要求が続いたため、2password をロックしました。"
+  },
+  "locked_title": {
+    "message": "2password はロック中です"
+  },
+  "locked_text": {
+    "message": "アプリでロックを解除してください。"
+  },
+  "generate_title": {
+    "message": "強いパスワードを作って入力"
+  },
+  "generate_sub": {
+    "message": "送信後に、保存するか確認します"
+  },
+  "lookalike_title": {
+    "message": "注意：保存済みのサイトとは別のサイトです"
+  },
+  "lookalike_note_title": {
+    "message": "「$1」に似ていますが、別のサイトです",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "このページは $1 です。$2（$3）のパスワードを、ここに入力しないでください。アドレスをよく確かめてください。",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "$1（$2）とはアドレスが違います",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "このページは $1 です。ここでも使うには、アプリで項目の URL にこのアドレスを追加してください。",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "項目の「編集」から URL を追加できます"
+  },
+  "idn_title": {
+    "message": "注意：アドレスを確かめてください"
+  },
+  "idn_note_title": {
+    "message": "アドレスに特殊な文字が含まれています"
+  },
+  "idn_note_text": {
+    "message": "このページ（$1）は、見た目がよく似た別の文字を使った偽サイトの可能性があります。",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "暗号化されていないページです（http）"
+  },
+  "insecure_text": {
+    "message": "通信の途中でパスワードを読まれるおそれがあるため、このページには入力しません。"
+  },
+  "locked_menu_open": {
+    "message": "アプリを開いてロックを解除"
+  },
+  "locked_menu_sub": {
+    "message": "解除したら、もう一度この欄をクリックしてください"
+  },
+  "save_title": {
+    "message": "ログイン情報を保存しますか？"
+  },
+  "update_title": {
+    "message": "パスワードを更新しますか？"
+  },
+  "save_later": {
+    "message": "今回はしない"
+  },
+  "save_button": {
+    "message": "保存する"
+  },
+  "update_button": {
+    "message": "更新する"
+  },
+  "update_text": {
+    "message": "「$1」のパスワードを新しいものに置き換えます。",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password がロック中です。解除すると保存できます。"
+  },
+  "saving": {
+    "message": "保存中…"
+  },
+  "saved": {
+    "message": "2password に保存しました"
+  },
+  "save_failed": {
+    "message": "保存できませんでした"
+  },
+  "otp_fill": {
+    "message": "ワンタイムパスワードを入力"
+  },
+  "otp_filled_title": {
+    "message": "ワンタイムパスワードを入力しました"
+  },
+  "otp_filled_text": {
+    "message": "2password が $1 の認証コードを入力しました。",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "ほかの方法を使う"
+  },
+  "pk_waiting": {
+    "message": "解除を待っています…"
+  },
+  "pk_locked_text": {
+    "message": "パスキーに 2password を使うには、アプリでロックを解除してください。"
+  },
+  "pk_save_title": {
+    "message": "パスキーを 2password に保存しますか？"
+  },
+  "pk_save_text": {
+    "message": "保存すると、2password を入れたほかのパソコンでも使えます。"
+  },
+  "pk_save": {
+    "message": "2password に保存"
+  },
+  "pk_creating": {
+    "message": "作成中…"
+  },
+  "pk_save_failed": {
+    "message": "パスキーを保存できませんでした"
+  },
+  "pk_save_failed_text": {
+    "message": "ブラウザの方法に切り替えます。"
+  },
+  "pk_login_title": {
+    "message": "パスキーでログイン"
+  },
+  "pk_login_text": {
+    "message": "使うアカウントを選んでください。"
+  },
+  "popup_checking": {
+    "message": "確認しています…"
+  },
+  "popup_not_running": {
+    "message": "2password アプリが起動していません。"
+  },
+  "popup_not_running_text": {
+    "message": "アプリを起動してロックを解除してから、もう一度開いてください。"
+  },
+  "popup_not_allowed": {
+    "message": "この拡張機能はアプリに登録されていません。"
+  },
+  "popup_not_allowed_step1": {
+    "message": "2password アプリの「設定」を開く"
+  },
+  "popup_not_allowed_step2": {
+    "message": "「拡張機能の ID を指定する」にこの ID を入力する"
+  },
+  "popup_not_allowed_step3": {
+    "message": "「ブラウザと接続する」を押す"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "2password アプリと接続できていません。"
+  },
+  "popup_no_host_step1": {
+    "message": "2password アプリを起動する"
+  },
+  "popup_no_host_step2": {
+    "message": "「設定」→「ブラウザ拡張機能」→「ブラウザと接続する」を押す"
+  },
+  "popup_no_host_step3": {
+    "message": "ブラウザを再起動する"
+  },
+  "popup_ext_id": {
+    "message": "この拡張機能の ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "2password アプリで保管庫を作成してください。"
+  },
+  "popup_locked": {
+    "message": "2password はロック中です。"
+  },
+  "popup_unlock": {
+    "message": "アプリを開いてロックを解除"
+  },
+  "popup_lookalike": {
+    "message": "注意：このページは、保存済みの「$1」に似ていますが、別のサイトです。",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "$1（$2）のパスワードを、ここに入力しないでください。アドレスをよく確かめてください。",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "保存済みの $1（$2）とはアドレスが違います。",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "ここでも使うには、アプリで項目の URL にこのページのアドレスを追加してください。"
+  },
+  "popup_empty": {
+    "message": "このサイトの項目はまだありません。"
+  },
+  "popup_empty_text": {
+    "message": "ログインすると、保存するかどうかを確認します。アプリの「＋ 追加」で登録するときは、URL 欄にこのサイトのアドレスを入れてください。"
+  },
+  "popup_click_to_fill": {
+    "message": "クリックすると、このページに入力します。"
+  },
+  "err_no_match": {
+    "message": "このサイトに一致する項目がありません"
+  },
+  "err_insecure": {
+    "message": "暗号化されていないページ（http）では使えません"
+  },
+  "err_bad_origin": {
+    "message": "このページでは使えません。"
+  },
+  "err_bad_rp": {
+    "message": "このページでは、このサイト名のパスキーを使えません"
+  },
+  "err_expired": {
+    "message": "時間が経ったため保存できませんでした"
+  },
+  "err_no_form": {
+    "message": "このページに入力欄が見つかりません"
+  },
+  "err_no_content": {
+    "message": "ページを再読み込みしてから、もう一度試してください"
+  },
+  "err_navigated": {
+    "message": "ページが切り替わったため、入力しませんでした"
+  },
+  "err_exists": {
+    "message": "このサイトのパスキーは、すでに保存されています"
+  },
+  "err_locked": {
+    "message": "2password がロックされています"
+  },
+  "err_rate_limited": {
+    "message": "短い時間に要求が続いたため、2password をロックしました"
+  },
+  "err_needs_approval": {
+    "message": "このサイトで使うのは初めてです。2password アプリで許可してから、もう一度選んでください"
+  },
+  "err_bad_request": {
+    "message": "処理できない内容です"
+  },
+  "err_failed": {
+    "message": "操作できませんでした"
+  }
+}

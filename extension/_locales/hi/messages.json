@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "2password डेस्कटॉप ऐप के साथ काम करता है: साइन-इन पेज भरता है, लॉगिन सहेजता है, वन-टाइम पासवर्ड भरता है और पासकी सहेजता है।",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(कोई उपयोगकर्ता नाम नहीं)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "ऐप खोलें"
+  },
+  "approve_title": {
+    "message": "2password ऐप में अनुमति दें"
+  },
+  "approve_text": {
+    "message": "यह आइटम इस साइट पर पहली बार इस्तेमाल हो रहा है। ऐप में अनुमति दें, फिर आइटम दोबारा चुनें।"
+  },
+  "rate_limited_title": {
+    "message": "2password लॉक कर दिया गया"
+  },
+  "rate_limited_text": {
+    "message": "कम समय में बहुत सारे अनुरोध आए, इसलिए 2password लॉक कर दिया गया।"
+  },
+  "locked_title": {
+    "message": "2password लॉक है"
+  },
+  "locked_text": {
+    "message": "ऐप में अनलॉक करें।"
+  },
+  "generate_title": {
+    "message": "मज़बूत पासवर्ड बनाएँ"
+  },
+  "generate_sub": {
+    "message": "भेजने के बाद आपसे पूछा जाएगा कि इसे सहेजना है या नहीं"
+  },
+  "lookalike_title": {
+    "message": "चेतावनी: यह वह साइट नहीं है जिसे आपने सहेजा था"
+  },
+  "lookalike_note_title": {
+    "message": "“$1” जैसी दिखती है, लेकिन यह अलग साइट है",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "यह पेज $1 है। यहाँ $2 ($3) का पासवर्ड दर्ज न करें। पता ध्यान से जाँचें।",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "$1 ($2) से अलग पता",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "यह पेज $1 है। यहाँ भी आइटम इस्तेमाल करने के लिए, ऐप में आइटम के URL में यह पता जोड़ें।",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "आइटम के “संपादित करें” से URL जोड़ा जा सकता है"
+  },
+  "idn_title": {
+    "message": "चेतावनी: पता जाँचें"
+  },
+  "idn_note_title": {
+    "message": "पते में असामान्य अक्षर हैं"
+  },
+  "idn_note_text": {
+    "message": "यह पेज ($1) एक जैसे दिखने वाले अक्षरों का इस्तेमाल करने वाली नकली साइट हो सकता है।",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "यह पेज एन्क्रिप्टेड नहीं है (http)"
+  },
+  "insecure_text": {
+    "message": "भेजते समय पासवर्ड पढ़े जा सकते हैं, इसलिए इस पेज पर कुछ नहीं भरा जाता।"
+  },
+  "locked_menu_open": {
+    "message": "ऐप खोलें और अनलॉक करें"
+  },
+  "locked_menu_sub": {
+    "message": "अनलॉक करने के बाद इस फ़ील्ड पर फिर से क्लिक करें"
+  },
+  "save_title": {
+    "message": "यह लॉगिन सहेजें?"
+  },
+  "update_title": {
+    "message": "पासवर्ड अपडेट करें?"
+  },
+  "save_later": {
+    "message": "अभी नहीं"
+  },
+  "save_button": {
+    "message": "सहेजें"
+  },
+  "update_button": {
+    "message": "अपडेट करें"
+  },
+  "update_text": {
+    "message": "“$1” का पासवर्ड नए पासवर्ड से बदल देता है।",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password लॉक है। सहेजने के लिए अनलॉक करें।"
+  },
+  "saving": {
+    "message": "सहेजा जा रहा है…"
+  },
+  "saved": {
+    "message": "2password में सहेजा गया"
+  },
+  "save_failed": {
+    "message": "सहेजा नहीं जा सका"
+  },
+  "otp_fill": {
+    "message": "वन-टाइम पासवर्ड भरें"
+  },
+  "otp_filled_title": {
+    "message": "वन-टाइम पासवर्ड भरा गया"
+  },
+  "otp_filled_text": {
+    "message": "2password ने $1 के लिए सत्यापन कोड भर दिया।",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "दूसरा तरीका इस्तेमाल करें"
+  },
+  "pk_waiting": {
+    "message": "अनलॉक होने की प्रतीक्षा…"
+  },
+  "pk_locked_text": {
+    "message": "पासकी के लिए 2password इस्तेमाल करने हेतु, ऐप में अनलॉक करें।"
+  },
+  "pk_save_title": {
+    "message": "पासकी 2password में सहेजें?"
+  },
+  "pk_save_text": {
+    "message": "सहेजने के बाद, आप इसे 2password वाले अपने दूसरे कंप्यूटरों पर भी इस्तेमाल कर सकते हैं।"
+  },
+  "pk_save": {
+    "message": "2password में सहेजें"
+  },
+  "pk_creating": {
+    "message": "बनाई जा रही है…"
+  },
+  "pk_save_failed": {
+    "message": "पासकी सहेजी नहीं जा सकी"
+  },
+  "pk_save_failed_text": {
+    "message": "ब्राउज़र के तरीके पर स्विच किया जा रहा है।"
+  },
+  "pk_login_title": {
+    "message": "पासकी से साइन इन करें"
+  },
+  "pk_login_text": {
+    "message": "एक खाता चुनें।"
+  },
+  "popup_checking": {
+    "message": "जाँच हो रही है…"
+  },
+  "popup_not_running": {
+    "message": "2password ऐप चल नहीं रहा है।"
+  },
+  "popup_not_running_text": {
+    "message": "ऐप शुरू करें, अनलॉक करें, और इसे फिर से खोलें।"
+  },
+  "popup_not_allowed": {
+    "message": "यह एक्सटेंशन ऐप में पंजीकृत नहीं है।"
+  },
+  "popup_not_allowed_step1": {
+    "message": "2password ऐप में “सेटिंग” खोलें"
+  },
+  "popup_not_allowed_step2": {
+    "message": "“एक्सटेंशन ID बताएँ” में यह ID दर्ज करें"
+  },
+  "popup_not_allowed_step3": {
+    "message": "“ब्राउज़र से कनेक्ट करें” पर क्लिक करें"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "2password ऐप से कनेक्ट नहीं है।"
+  },
+  "popup_no_host_step1": {
+    "message": "2password ऐप शुरू करें"
+  },
+  "popup_no_host_step2": {
+    "message": "“सेटिंग” → “ब्राउज़र एक्सटेंशन” → “ब्राउज़र से कनेक्ट करें” पर क्लिक करें"
+  },
+  "popup_no_host_step3": {
+    "message": "ब्राउज़र रीस्टार्ट करें"
+  },
+  "popup_ext_id": {
+    "message": "इस एक्सटेंशन की ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "2password ऐप में वॉल्ट बनाएँ।"
+  },
+  "popup_locked": {
+    "message": "2password लॉक है।"
+  },
+  "popup_unlock": {
+    "message": "ऐप खोलें और अनलॉक करें"
+  },
+  "popup_lookalike": {
+    "message": "चेतावनी: यह पेज आपकी सहेजी हुई “$1” जैसा दिखता है, लेकिन यह अलग साइट है।",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "यहाँ $1 ($2) का पासवर्ड दर्ज न करें। पता ध्यान से जाँचें।",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "यह पता आपकी सहेजी हुई $1 ($2) से अलग है।",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "यहाँ भी आइटम इस्तेमाल करने के लिए, ऐप में आइटम के URL में इस पेज का पता जोड़ें।"
+  },
+  "popup_empty": {
+    "message": "इस साइट के लिए अभी कोई आइटम नहीं है।"
+  },
+  "popup_empty_text": {
+    "message": "साइन इन करने पर आपसे पूछा जाएगा कि लॉगिन सहेजना है या नहीं। ऐप में “+ जोड़ें” से जोड़ते समय URL फ़ील्ड में इस साइट का पता दर्ज करें।"
+  },
+  "popup_click_to_fill": {
+    "message": "इस पेज पर भरने के लिए किसी आइटम पर क्लिक करें।"
+  },
+  "err_no_match": {
+    "message": "इस साइट से मेल खाता कोई आइटम नहीं है"
+  },
+  "err_insecure": {
+    "message": "बिना एन्क्रिप्शन वाले (http) पेजों पर उपलब्ध नहीं"
+  },
+  "err_bad_origin": {
+    "message": "इस पेज पर उपलब्ध नहीं है।"
+  },
+  "err_bad_rp": {
+    "message": "यह पेज इस साइट नाम की पासकी इस्तेमाल नहीं कर सकता"
+  },
+  "err_expired": {
+    "message": "बहुत समय बीत जाने के कारण सहेजा नहीं जा सका"
+  },
+  "err_no_form": {
+    "message": "इस पेज पर कोई इनपुट फ़ील्ड नहीं मिला"
+  },
+  "err_no_content": {
+    "message": "पेज रीलोड करें और फिर से कोशिश करें"
+  },
+  "err_navigated": {
+    "message": "पेज बदल गया, इसलिए कुछ नहीं भरा गया"
+  },
+  "err_exists": {
+    "message": "इस साइट की पासकी पहले से सहेजी हुई है"
+  },
+  "err_locked": {
+    "message": "2password लॉक है"
+  },
+  "err_rate_limited": {
+    "message": "कम समय में बहुत सारे अनुरोध आए, इसलिए 2password लॉक कर दिया गया"
+  },
+  "err_needs_approval": {
+    "message": "इस साइट पर यह पहली बार है। 2password ऐप में अनुमति दें, फिर दोबारा चुनें"
+  },
+  "err_bad_request": {
+    "message": "अनुरोध प्रोसेस नहीं किया जा सका"
+  },
+  "err_failed": {
+    "message": "कार्रवाई विफल रही"
+  }
+}

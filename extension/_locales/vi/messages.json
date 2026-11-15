@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "Dùng với ứng dụng 2password trên máy tính: tự điền trang đăng nhập và mật khẩu một lần, lưu thông tin đăng nhập và khóa truy cập.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(không có tên người dùng)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "Mở ứng dụng"
+  },
+  "approve_title": {
+    "message": "Hãy cho phép trong ứng dụng 2password"
+  },
+  "approve_text": {
+    "message": "Đây là lần đầu mục này được dùng trên trang web này. Hãy cho phép trong ứng dụng, rồi chọn lại mục."
+  },
+  "rate_limited_title": {
+    "message": "Đã khóa 2password"
+  },
+  "rate_limited_text": {
+    "message": "Đã khóa 2password vì có nhiều yêu cầu trong thời gian ngắn."
+  },
+  "locked_title": {
+    "message": "2password đang bị khóa"
+  },
+  "locked_text": {
+    "message": "Hãy mở khóa trong ứng dụng."
+  },
+  "generate_title": {
+    "message": "Tạo mật khẩu mạnh"
+  },
+  "generate_sub": {
+    "message": "Sau khi gửi, bạn sẽ được hỏi có muốn lưu không"
+  },
+  "lookalike_title": {
+    "message": "Cảnh báo: đây không phải trang web bạn đã lưu"
+  },
+  "lookalike_note_title": {
+    "message": "Trông giống “$1”, nhưng là một trang web khác",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "Trang này là $1. Không được nhập mật khẩu của $2 ($3) tại đây. Hãy kiểm tra kỹ địa chỉ.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "Địa chỉ khác với $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "Trang này là $1. Để dùng mục này cả ở đây, hãy thêm địa chỉ này vào URL của mục trong ứng dụng.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "Bạn có thể thêm URL qua “Sửa” của mục"
+  },
+  "idn_title": {
+    "message": "Cảnh báo: hãy kiểm tra địa chỉ"
+  },
+  "idn_note_title": {
+    "message": "Địa chỉ chứa ký tự bất thường"
+  },
+  "idn_note_text": {
+    "message": "Trang này ($1) có thể là trang giả mạo dùng các ký tự trông giống nhau.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "Trang này không được mã hóa (http)"
+  },
+  "insecure_text": {
+    "message": "Mật khẩu có thể bị đọc trộm trong lúc truyền, nên sẽ không điền gì vào trang này."
+  },
+  "locked_menu_open": {
+    "message": "Mở ứng dụng và mở khóa"
+  },
+  "locked_menu_sub": {
+    "message": "Sau khi mở khóa, hãy nhấp lại vào ô này"
+  },
+  "save_title": {
+    "message": "Lưu thông tin đăng nhập này?"
+  },
+  "update_title": {
+    "message": "Cập nhật mật khẩu?"
+  },
+  "save_later": {
+    "message": "Để sau"
+  },
+  "save_button": {
+    "message": "Lưu"
+  },
+  "update_button": {
+    "message": "Cập nhật"
+  },
+  "update_text": {
+    "message": "Thay mật khẩu của “$1” bằng mật khẩu mới.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password đang bị khóa. Hãy mở khóa để lưu."
+  },
+  "saving": {
+    "message": "Đang lưu…"
+  },
+  "saved": {
+    "message": "Đã lưu vào 2password"
+  },
+  "save_failed": {
+    "message": "Không thể lưu"
+  },
+  "otp_fill": {
+    "message": "Điền mật khẩu một lần"
+  },
+  "otp_filled_title": {
+    "message": "Đã điền mật khẩu một lần"
+  },
+  "otp_filled_text": {
+    "message": "2password đã nhập mã xác minh cho $1.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "Dùng cách khác"
+  },
+  "pk_waiting": {
+    "message": "Đang chờ mở khóa…"
+  },
+  "pk_locked_text": {
+    "message": "Để dùng 2password cho khóa truy cập, hãy mở khóa trong ứng dụng."
+  },
+  "pk_save_title": {
+    "message": "Lưu khóa truy cập vào 2password?"
+  },
+  "pk_save_text": {
+    "message": "Sau khi lưu, bạn có thể dùng khóa này trên các máy tính khác có 2password."
+  },
+  "pk_save": {
+    "message": "Lưu vào 2password"
+  },
+  "pk_creating": {
+    "message": "Đang tạo…"
+  },
+  "pk_save_failed": {
+    "message": "Không thể lưu khóa truy cập"
+  },
+  "pk_save_failed_text": {
+    "message": "Đang chuyển sang cách của trình duyệt."
+  },
+  "pk_login_title": {
+    "message": "Đăng nhập bằng khóa truy cập"
+  },
+  "pk_login_text": {
+    "message": "Hãy chọn tài khoản."
+  },
+  "popup_checking": {
+    "message": "Đang kiểm tra…"
+  },
+  "popup_not_running": {
+    "message": "Ứng dụng 2password chưa chạy."
+  },
+  "popup_not_running_text": {
+    "message": "Hãy khởi động ứng dụng, mở khóa, rồi mở lại mục này."
+  },
+  "popup_not_allowed": {
+    "message": "Tiện ích này chưa được đăng ký với ứng dụng."
+  },
+  "popup_not_allowed_step1": {
+    "message": "Mở “Cài đặt” trong ứng dụng 2password"
+  },
+  "popup_not_allowed_step2": {
+    "message": "Nhập ID này vào “Chỉ định ID tiện ích”"
+  },
+  "popup_not_allowed_step3": {
+    "message": "Nhấn “Kết nối với trình duyệt”"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "Chưa kết nối với ứng dụng 2password."
+  },
+  "popup_no_host_step1": {
+    "message": "Khởi động ứng dụng 2password"
+  },
+  "popup_no_host_step2": {
+    "message": "Nhấn “Cài đặt” → “Tiện ích trình duyệt” → “Kết nối với trình duyệt”"
+  },
+  "popup_no_host_step3": {
+    "message": "Khởi động lại trình duyệt"
+  },
+  "popup_ext_id": {
+    "message": "ID của tiện ích này: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "Hãy tạo kho mật khẩu trong ứng dụng 2password."
+  },
+  "popup_locked": {
+    "message": "2password đang bị khóa."
+  },
+  "popup_unlock": {
+    "message": "Mở ứng dụng và mở khóa"
+  },
+  "popup_lookalike": {
+    "message": "Cảnh báo: trang này trông giống “$1” mà bạn đã lưu, nhưng là một trang web khác.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "Không được nhập mật khẩu của $1 ($2) tại đây. Hãy kiểm tra kỹ địa chỉ.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "Địa chỉ này khác với $1 ($2) mà bạn đã lưu.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "Để dùng mục này cả ở đây, hãy thêm địa chỉ của trang này vào URL của mục trong ứng dụng."
+  },
+  "popup_empty": {
+    "message": "Chưa có mục nào cho trang web này."
+  },
+  "popup_empty_text": {
+    "message": "Khi bạn đăng nhập, bạn sẽ được hỏi có muốn lưu thông tin đăng nhập không. Khi thêm bằng “+ Thêm” trong ứng dụng, hãy nhập địa chỉ của trang web này vào ô URL."
+  },
+  "popup_click_to_fill": {
+    "message": "Nhấp vào một mục để điền vào trang này."
+  },
+  "err_no_match": {
+    "message": "Không có mục nào khớp với trang web này"
+  },
+  "err_insecure": {
+    "message": "Không dùng được trên trang không được mã hóa (http)"
+  },
+  "err_bad_origin": {
+    "message": "Không dùng được trên trang này."
+  },
+  "err_bad_rp": {
+    "message": "Trang này không thể dùng khóa truy cập cho tên trang web này"
+  },
+  "err_expired": {
+    "message": "Không thể lưu vì đã quá nhiều thời gian"
+  },
+  "err_no_form": {
+    "message": "Không tìm thấy ô nhập liệu trên trang này"
+  },
+  "err_no_content": {
+    "message": "Hãy tải lại trang rồi thử lại"
+  },
+  "err_navigated": {
+    "message": "Trang đã thay đổi nên không điền gì"
+  },
+  "err_exists": {
+    "message": "Khóa truy cập cho trang web này đã được lưu"
+  },
+  "err_locked": {
+    "message": "2password đang bị khóa"
+  },
+  "err_rate_limited": {
+    "message": "Đã khóa 2password vì có nhiều yêu cầu trong thời gian ngắn"
+  },
+  "err_needs_approval": {
+    "message": "Đây là lần đầu dùng trên trang web này. Hãy cho phép trong ứng dụng 2password, rồi chọn lại"
+  },
+  "err_bad_request": {
+    "message": "Không thể xử lý yêu cầu"
+  },
+  "err_failed": {
+    "message": "Thao tác thất bại"
+  }
+}

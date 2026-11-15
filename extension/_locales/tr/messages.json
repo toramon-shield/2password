@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "2password uygulamasıyla girişleri doldurur, giriş bilgilerini kaydeder, tek kullanımlık parola girer, geçiş anahtarı saklar.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(kullanıcı adı yok)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "Uygulamayı aç"
+  },
+  "approve_title": {
+    "message": "2password uygulamasında izin verin"
+  },
+  "approve_text": {
+    "message": "Bu öğe bu sitede ilk kez kullanılıyor. Uygulamada izin verin, ardından öğeyi yeniden seçin."
+  },
+  "rate_limited_title": {
+    "message": "2password kilitlendi"
+  },
+  "rate_limited_text": {
+    "message": "Kısa sürede çok sayıda istek geldiği için 2password kilitlendi."
+  },
+  "locked_title": {
+    "message": "2password kilitli"
+  },
+  "locked_text": {
+    "message": "Uygulamada kilidi açın."
+  },
+  "generate_title": {
+    "message": "Güçlü bir parola oluştur"
+  },
+  "generate_sub": {
+    "message": "Gönderdikten sonra kaydedilip kaydedilmeyeceği sorulur"
+  },
+  "lookalike_title": {
+    "message": "Dikkat: Bu, kaydettiğiniz site değil"
+  },
+  "lookalike_note_title": {
+    "message": "“$1” sitesine benziyor, ancak farklı bir site",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "Bu sayfa: $1. $2 ($3) parolasını buraya girmeyin. Adresi dikkatle kontrol edin.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "$1 ($2) adresinden farklı",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "Bu sayfa: $1. Öğeyi burada da kullanmak için uygulamada bu adresi öğenin URL'lerine ekleyin.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "URL'yi öğedeki “Düzenle” ile ekleyebilirsiniz"
+  },
+  "idn_title": {
+    "message": "Dikkat: Adresi kontrol edin"
+  },
+  "idn_note_title": {
+    "message": "Adres alışılmadık karakterler içeriyor"
+  },
+  "idn_note_text": {
+    "message": "Bu sayfa ($1), birbirine benzeyen karakterler kullanan sahte bir site olabilir.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "Bu sayfa şifrelenmemiş (http)"
+  },
+  "insecure_text": {
+    "message": "Parolalar iletim sırasında okunabileceği için bu sayfada hiçbir şey doldurulmaz."
+  },
+  "locked_menu_open": {
+    "message": "Uygulamayı aç ve kilidi aç"
+  },
+  "locked_menu_sub": {
+    "message": "Kilidi açtıktan sonra bu alana yeniden tıklayın"
+  },
+  "save_title": {
+    "message": "Bu giriş bilgileri kaydedilsin mi?"
+  },
+  "update_title": {
+    "message": "Parola güncellensin mi?"
+  },
+  "save_later": {
+    "message": "Şimdi değil"
+  },
+  "save_button": {
+    "message": "Kaydet"
+  },
+  "update_button": {
+    "message": "Güncelle"
+  },
+  "update_text": {
+    "message": "“$1” öğesinin parolasını yenisiyle değiştirir.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password kilitli. Kaydetmek için kilidi açın."
+  },
+  "saving": {
+    "message": "Kaydediliyor…"
+  },
+  "saved": {
+    "message": "2password'e kaydedildi"
+  },
+  "save_failed": {
+    "message": "Kaydedilemedi"
+  },
+  "otp_fill": {
+    "message": "Tek kullanımlık parolayı doldur"
+  },
+  "otp_filled_title": {
+    "message": "Tek kullanımlık parola dolduruldu"
+  },
+  "otp_filled_text": {
+    "message": "2password, $1 için doğrulama kodunu girdi.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "Başka bir yöntem kullan"
+  },
+  "pk_waiting": {
+    "message": "Kilidin açılması bekleniyor…"
+  },
+  "pk_locked_text": {
+    "message": "Geçiş anahtarları için 2password'ü kullanmak üzere uygulamada kilidi açın."
+  },
+  "pk_save_title": {
+    "message": "Geçiş anahtarı 2password'e kaydedilsin mi?"
+  },
+  "pk_save_text": {
+    "message": "Kaydettikten sonra 2password yüklü diğer bilgisayarlarınızda da kullanabilirsiniz."
+  },
+  "pk_save": {
+    "message": "2password'e kaydet"
+  },
+  "pk_creating": {
+    "message": "Oluşturuluyor…"
+  },
+  "pk_save_failed": {
+    "message": "Geçiş anahtarı kaydedilemedi"
+  },
+  "pk_save_failed_text": {
+    "message": "Tarayıcının yöntemine geçiliyor."
+  },
+  "pk_login_title": {
+    "message": "Geçiş anahtarıyla giriş yap"
+  },
+  "pk_login_text": {
+    "message": "Bir hesap seçin."
+  },
+  "popup_checking": {
+    "message": "Kontrol ediliyor…"
+  },
+  "popup_not_running": {
+    "message": "2password uygulaması çalışmıyor."
+  },
+  "popup_not_running_text": {
+    "message": "Uygulamayı başlatın, kilidini açın ve bunu yeniden açın."
+  },
+  "popup_not_allowed": {
+    "message": "Bu uzantı uygulamada kayıtlı değil."
+  },
+  "popup_not_allowed_step1": {
+    "message": "2password uygulamasında “Ayarlar”ı açın"
+  },
+  "popup_not_allowed_step2": {
+    "message": "Bu ID'yi “Uzantı ID'si belirt” alanına girin"
+  },
+  "popup_not_allowed_step3": {
+    "message": "“Tarayıcılara bağlan”a tıklayın"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "2password uygulamasına bağlı değil."
+  },
+  "popup_no_host_step1": {
+    "message": "2password uygulamasını başlatın"
+  },
+  "popup_no_host_step2": {
+    "message": "“Ayarlar” → “Tarayıcı uzantısı” → “Tarayıcılara bağlan”a tıklayın"
+  },
+  "popup_no_host_step3": {
+    "message": "Tarayıcıyı yeniden başlatın"
+  },
+  "popup_ext_id": {
+    "message": "Bu uzantının ID'si: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "2password uygulamasında bir kasa oluşturun."
+  },
+  "popup_locked": {
+    "message": "2password kilitli."
+  },
+  "popup_unlock": {
+    "message": "Uygulamayı aç ve kilidi aç"
+  },
+  "popup_lookalike": {
+    "message": "Dikkat: Bu sayfa kaydettiğiniz “$1” sitesine benziyor, ancak farklı bir site.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "$1 ($2) parolasını buraya girmeyin. Adresi dikkatle kontrol edin.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "Bu adres, kaydettiğiniz $1 ($2) adresinden farklı.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "Öğeyi burada da kullanmak için uygulamada bu sayfanın adresini öğenin URL'lerine ekleyin."
+  },
+  "popup_empty": {
+    "message": "Bu site için henüz öğe yok."
+  },
+  "popup_empty_text": {
+    "message": "Giriş yaptığınızda giriş bilgilerinin kaydedilip kaydedilmeyeceği sorulur. Uygulamada “+ Ekle” ile eklerken URL alanına bu sitenin adresini girin."
+  },
+  "popup_click_to_fill": {
+    "message": "Bu sayfada doldurmak için bir öğeye tıklayın."
+  },
+  "err_no_match": {
+    "message": "Bu siteyle eşleşen öğe yok"
+  },
+  "err_insecure": {
+    "message": "Şifrelenmemiş (http) sayfalarda kullanılamaz"
+  },
+  "err_bad_origin": {
+    "message": "Bu sayfada kullanılamaz."
+  },
+  "err_bad_rp": {
+    "message": "Bu sayfa bu site adı için geçiş anahtarı kullanamaz"
+  },
+  "err_expired": {
+    "message": "Çok fazla zaman geçtiği için kaydedilemedi"
+  },
+  "err_no_form": {
+    "message": "Bu sayfada giriş alanı bulunamadı"
+  },
+  "err_no_content": {
+    "message": "Sayfayı yeniden yükleyip tekrar deneyin"
+  },
+  "err_navigated": {
+    "message": "Sayfa değiştiği için hiçbir şey doldurulmadı"
+  },
+  "err_exists": {
+    "message": "Bu site için zaten bir geçiş anahtarı kayıtlı"
+  },
+  "err_locked": {
+    "message": "2password kilitli"
+  },
+  "err_rate_limited": {
+    "message": "Kısa sürede çok sayıda istek geldiği için 2password kilitlendi"
+  },
+  "err_needs_approval": {
+    "message": "Bu sitede ilk kullanım. 2password uygulamasında izin verin, ardından yeniden seçin"
+  },
+  "err_bad_request": {
+    "message": "İstek işlenemedi"
+  },
+  "err_failed": {
+    "message": "İşlem başarısız oldu"
+  }
+}

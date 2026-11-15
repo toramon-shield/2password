@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "Funciona com o app 2password para preencher logins, salvar credenciais, digitar senhas de uso único e guardar chaves de acesso.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(sem nome de usuário)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "Abrir o app"
+  },
+  "approve_title": {
+    "message": "Permita no app 2password"
+  },
+  "approve_text": {
+    "message": "É a primeira vez que este item é usado neste site. Permita no app e depois escolha o item novamente."
+  },
+  "rate_limited_title": {
+    "message": "O 2password foi bloqueado"
+  },
+  "rate_limited_text": {
+    "message": "O 2password foi bloqueado porque chegaram muitas solicitações em pouco tempo."
+  },
+  "locked_title": {
+    "message": "O 2password está bloqueado"
+  },
+  "locked_text": {
+    "message": "Desbloqueie-o no app."
+  },
+  "generate_title": {
+    "message": "Gerar e preencher uma senha forte"
+  },
+  "generate_sub": {
+    "message": "Depois de enviar, você poderá escolher se quer salvá-la"
+  },
+  "lookalike_title": {
+    "message": "Atenção: este não é o site que você salvou"
+  },
+  "lookalike_note_title": {
+    "message": "Parece “$1”, mas é um site diferente",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "Esta página é $1. Não digite aqui a senha de $2 ($3). Verifique o endereço com atenção.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "Endereço diferente de $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "Esta página é $1. Para usar o item aqui também, adicione este endereço às URLs do item no app.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "Você pode adicionar a URL em “Editar” no item"
+  },
+  "idn_title": {
+    "message": "Atenção: verifique o endereço"
+  },
+  "idn_note_title": {
+    "message": "O endereço contém caracteres incomuns"
+  },
+  "idn_note_text": {
+    "message": "Esta página ($1) pode ser um site falso que usa caracteres parecidos.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "Esta página não é criptografada (http)"
+  },
+  "insecure_text": {
+    "message": "As senhas podem ser lidas durante a transmissão, por isso nada é preenchido nesta página."
+  },
+  "locked_menu_open": {
+    "message": "Abrir o app e desbloquear"
+  },
+  "locked_menu_sub": {
+    "message": "Depois de desbloquear, clique neste campo de novo"
+  },
+  "save_title": {
+    "message": "Salvar este login?"
+  },
+  "update_title": {
+    "message": "Atualizar a senha?"
+  },
+  "save_later": {
+    "message": "Agora não"
+  },
+  "save_button": {
+    "message": "Salvar"
+  },
+  "update_button": {
+    "message": "Atualizar"
+  },
+  "update_text": {
+    "message": "Substitui a senha de “$1” pela nova.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "O 2password está bloqueado. Desbloqueie-o para salvar."
+  },
+  "saving": {
+    "message": "Salvando…"
+  },
+  "saved": {
+    "message": "Salvo no 2password"
+  },
+  "save_failed": {
+    "message": "Não foi possível salvar"
+  },
+  "otp_fill": {
+    "message": "Preencher a senha de uso único"
+  },
+  "otp_filled_title": {
+    "message": "Senha de uso único preenchida"
+  },
+  "otp_filled_text": {
+    "message": "O 2password digitou o código de verificação de $1.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "Usar outro método"
+  },
+  "pk_waiting": {
+    "message": "Aguardando o desbloqueio…"
+  },
+  "pk_locked_text": {
+    "message": "Para usar o 2password com chaves de acesso, desbloqueie-o no app."
+  },
+  "pk_save_title": {
+    "message": "Salvar a chave de acesso no 2password?"
+  },
+  "pk_save_text": {
+    "message": "Depois de salva, você poderá usá-la nos seus outros computadores com o 2password."
+  },
+  "pk_save": {
+    "message": "Salvar no 2password"
+  },
+  "pk_creating": {
+    "message": "Criando…"
+  },
+  "pk_save_failed": {
+    "message": "Não foi possível salvar a chave de acesso"
+  },
+  "pk_save_failed_text": {
+    "message": "Mudando para o método do navegador."
+  },
+  "pk_login_title": {
+    "message": "Fazer login com chave de acesso"
+  },
+  "pk_login_text": {
+    "message": "Escolha uma conta."
+  },
+  "popup_checking": {
+    "message": "Verificando…"
+  },
+  "popup_not_running": {
+    "message": "O app 2password não está em execução."
+  },
+  "popup_not_running_text": {
+    "message": "Inicie o app, desbloqueie-o e abra isto novamente."
+  },
+  "popup_not_allowed": {
+    "message": "Esta extensão não está registrada no app."
+  },
+  "popup_not_allowed_step1": {
+    "message": "Abra “Configurações” no app 2password"
+  },
+  "popup_not_allowed_step2": {
+    "message": "Digite este ID em “Informar um ID de extensão”"
+  },
+  "popup_not_allowed_step3": {
+    "message": "Clique em “Conectar aos navegadores”"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "Não conectado ao app 2password."
+  },
+  "popup_no_host_step1": {
+    "message": "Inicie o app 2password"
+  },
+  "popup_no_host_step2": {
+    "message": "Clique em “Configurações” → “Extensão do navegador” → “Conectar aos navegadores”"
+  },
+  "popup_no_host_step3": {
+    "message": "Reinicie o navegador"
+  },
+  "popup_ext_id": {
+    "message": "ID desta extensão: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "Crie um cofre no app 2password."
+  },
+  "popup_locked": {
+    "message": "O 2password está bloqueado."
+  },
+  "popup_unlock": {
+    "message": "Abrir o app e desbloquear"
+  },
+  "popup_lookalike": {
+    "message": "Atenção: esta página parece “$1”, que você salvou, mas é um site diferente.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "Não digite aqui a senha de $1 ($2). Verifique o endereço com atenção.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "Este endereço é diferente de $1 ($2), que você salvou.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "Para usar o item aqui também, adicione o endereço desta página às URLs do item no app."
+  },
+  "popup_empty": {
+    "message": "Ainda não há itens para este site."
+  },
+  "popup_empty_text": {
+    "message": "Quando você fizer login, será perguntado se quer salvá-lo. Ao adicionar com “+ Adicionar” no app, digite o endereço deste site no campo URL."
+  },
+  "popup_click_to_fill": {
+    "message": "Clique em um item para preenchê-lo nesta página."
+  },
+  "err_no_match": {
+    "message": "Nenhum item corresponde a este site"
+  },
+  "err_insecure": {
+    "message": "Indisponível em páginas sem criptografia (http)"
+  },
+  "err_bad_origin": {
+    "message": "Indisponível nesta página."
+  },
+  "err_bad_rp": {
+    "message": "Esta página não pode usar uma chave de acesso para este nome de site"
+  },
+  "err_expired": {
+    "message": "Não foi possível salvar porque passou tempo demais"
+  },
+  "err_no_form": {
+    "message": "Nenhum campo de entrada foi encontrado nesta página"
+  },
+  "err_no_content": {
+    "message": "Recarregue a página e tente novamente"
+  },
+  "err_navigated": {
+    "message": "A página mudou, por isso nada foi preenchido"
+  },
+  "err_exists": {
+    "message": "Uma chave de acesso para este site já está salva"
+  },
+  "err_locked": {
+    "message": "O 2password está bloqueado"
+  },
+  "err_rate_limited": {
+    "message": "O 2password foi bloqueado porque chegaram muitas solicitações em pouco tempo"
+  },
+  "err_needs_approval": {
+    "message": "É a primeira vez neste site. Permita no app 2password e escolha novamente"
+  },
+  "err_bad_request": {
+    "message": "Não foi possível processar a solicitação"
+  },
+  "err_failed": {
+    "message": "A operação falhou"
+  }
+}

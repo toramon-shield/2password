@@ -1,8 +1,15 @@
 // 2password ブラウザ拡張：ツールバーのボタンを押したときの画面
+// 文言は _locales/<言語>/messages.json にある（ブラウザの表示言語で選ばれる）
 'use strict';
 
 const main = document.getElementById('main');
 const send = msg => chrome.runtime.sendMessage(msg);
+const t = (key, ...subs) => chrome.i18n.getMessage(key, subs.map(String)) || key;
+/** アプリから返ったエラーを、コードから訳す */
+const errText = res => chrome.i18n.getMessage('err_' + (res && res.error)) || t('err_failed');
+
+document.documentElement.lang = chrome.i18n.getUILanguage();
+document.documentElement.dir = chrome.i18n.getMessage('@@bidi_dir') || 'ltr';
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -25,68 +32,66 @@ function openAppButton(label) {
 }
 
 async function render() {
+  show(el('p', 'muted', t('popup_checking')));
   const status = await send({ type: 'status' });
   if (!status.ok) {
     if (status.error === 'app_not_running') {
-      return show(el('p', '', '2password アプリが起動していません。'), el('p', 'muted', 'アプリを起動してロックを解除してから、もう一度開いてください。'));
+      return show(el('p', '', t('popup_not_running')), el('p', 'muted', t('popup_not_running_text')));
     }
     if (status.error === 'not_allowed') {
       return show(
-        el('p', '', 'この拡張機能はアプリに登録されていません。'),
-        steps(['2password アプリの「設定」を開く', '「拡張機能の ID を指定する」にこの ID を入力する', '「ブラウザと接続する」を押す']),
-        el('p', 'muted', 'ID: ' + chrome.runtime.id),
+        el('p', '', t('popup_not_allowed')),
+        steps([t('popup_not_allowed_step1'), t('popup_not_allowed_step2'), t('popup_not_allowed_step3')]),
+        el('p', 'muted', t('popup_id', chrome.runtime.id)),
       );
     }
     return show(
-      el('p', '', '2password アプリと接続できていません。'),
-      steps(['2password アプリを起動する', '「設定」→「ブラウザ拡張機能」→「ブラウザと接続する」を押す', 'ブラウザを再起動する']),
-      el('p', 'muted', 'この拡張機能の ID: ' + chrome.runtime.id),
+      el('p', '', t('popup_no_host')),
+      steps([t('popup_no_host_step1'), t('popup_no_host_step2'), t('popup_no_host_step3')]),
+      el('p', 'muted', t('popup_ext_id', chrome.runtime.id)),
     );
   }
   if (!status.configured) {
-    return show(el('p', '', '2password アプリで保管庫を作成してください。'), openAppButton('アプリを開く'));
+    return show(el('p', '', t('popup_not_configured')), openAppButton(t('open_app')));
   }
   if (status.locked) {
-    return show(el('p', '', '2password はロック中です。'), openAppButton('アプリを開いてロックを解除'));
+    return show(el('p', '', t('popup_locked')), openAppButton(t('popup_unlock')));
   }
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const list = tab ? await send({ type: 'list-tab', tabId: tab.id }) : { ok: false, error: 'bad_origin' };
   if (!list.ok) {
-    return show(el('p', 'muted', list.error === 'bad_origin' ? 'このページでは使えません。' : (list.message || '一覧を取得できませんでした。')));
+    return show(el('p', 'muted', errText(list)));
   }
   document.getElementById('host').textContent = list.host;
   if (!list.items.length && list.related && list.related.kind === 'lookalike') {
     return show(
-      el('p', 'error', `注意：このページは、保存済みの「${list.related.host}」に似ていますが、別のサイトです。`),
-      el('p', 'muted', `${list.related.host}（${list.related.title}）のパスワードを、ここに入力しないでください。アドレスをよく確かめてください。`),
+      el('p', 'error', t('popup_lookalike', list.related.host)),
+      el('p', 'muted', t('popup_lookalike_text', list.related.host, list.related.title)),
     );
   }
   if (!list.items.length && list.related) {
     return show(
-      el('p', '', `保存済みの ${list.related.host}（${list.related.title}）とはアドレスが違います。`),
-      el('p', 'muted', 'ここでも使うには、アプリで項目の URL にこのページのアドレスを追加してください。'),
-      openAppButton('アプリを開く'),
+      el('p', '', t('popup_same_site', list.related.host, list.related.title)),
+      el('p', 'muted', t('popup_same_site_text')),
+      openAppButton(t('open_app')),
     );
   }
   if (!list.items.length) {
-    return show(
-      el('p', '', 'このサイトの項目はまだありません。'),
-      el('p', 'muted', 'ログインすると、保存するかどうかを確認します。アプリの「＋ 追加」で登録するときは、URL 欄にこのサイトのアドレスを入れてください。'),
-    );
+    return show(el('p', '', t('popup_empty')), el('p', 'muted', t('popup_empty_text')));
   }
   const error = el('p', 'error');
   const rows = list.items.map(it => {
     const b = el('button', 'item');
-    b.append(el('b', '', it.title), el('span', '', it.username || '（ユーザー名なし）'));
+    b.append(el('b', '', it.title), el('span', '', it.username || t('no_username')));
     b.addEventListener('click', async () => {
       const done = await send({ type: 'fill-tab', tabId: tab.id, id: it.id });
       if (done.ok) window.close();
-      else error.textContent = done.message || '入力できませんでした。';
+      else error.textContent = errText(done);
     });
     return b;
   });
-  show(el('p', 'muted', 'クリックすると、このページに入力します。'), ...rows, error);
+  show(el('p', 'muted', t('popup_click_to_fill')), ...rows, error);
 }
 
 render().catch(e => show(el('p', 'error', String(e))));

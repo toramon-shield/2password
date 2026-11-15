@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "Bersama aplikasi desktop 2password: isi halaman log masuk, simpan log masuk, isi kata laluan sekali guna dan simpan kunci laluan.",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(tiada nama pengguna)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "Buka aplikasi"
+  },
+  "approve_title": {
+    "message": "Benarkan dalam aplikasi 2password"
+  },
+  "approve_text": {
+    "message": "Ini kali pertama item ini digunakan di laman ini. Benarkan dalam aplikasi, kemudian pilih item itu sekali lagi."
+  },
+  "rate_limited_title": {
+    "message": "2password kini dikunci"
+  },
+  "rate_limited_text": {
+    "message": "2password telah dikunci kerana banyak permintaan diterima dalam masa yang singkat."
+  },
+  "locked_title": {
+    "message": "2password dikunci"
+  },
+  "locked_text": {
+    "message": "Buka kuncinya dalam aplikasi."
+  },
+  "generate_title": {
+    "message": "Jana kata laluan yang kuat"
+  },
+  "generate_sub": {
+    "message": "Anda akan ditanya sama ada mahu menyimpannya selepas menghantar"
+  },
+  "lookalike_title": {
+    "message": "Amaran: ini bukan laman yang anda simpan"
+  },
+  "lookalike_note_title": {
+    "message": "Kelihatan seperti “$1”, tetapi ini laman yang berbeza",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "Halaman ini ialah $1. Jangan masukkan kata laluan untuk $2 ($3) di sini. Semak alamat dengan teliti.",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "Alamat berbeza daripada $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "Halaman ini ialah $1. Untuk menggunakan item itu di sini juga, tambahkan alamat ini pada URL item dalam aplikasi.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "Anda boleh menambah URL melalui “Edit” pada item"
+  },
+  "idn_title": {
+    "message": "Amaran: semak alamat"
+  },
+  "idn_note_title": {
+    "message": "Alamat mengandungi aksara yang luar biasa"
+  },
+  "idn_note_text": {
+    "message": "Halaman ini ($1) mungkin laman palsu yang menggunakan aksara yang kelihatan serupa.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "Halaman ini tidak disulitkan (http)"
+  },
+  "insecure_text": {
+    "message": "Kata laluan boleh dibaca semasa dihantar, jadi tiada apa-apa yang diisi pada halaman ini."
+  },
+  "locked_menu_open": {
+    "message": "Buka aplikasi dan buka kunci"
+  },
+  "locked_menu_sub": {
+    "message": "Selepas membuka kunci, klik medan ini sekali lagi"
+  },
+  "save_title": {
+    "message": "Simpan butiran log masuk ini?"
+  },
+  "update_title": {
+    "message": "Kemas kini kata laluan?"
+  },
+  "save_later": {
+    "message": "Bukan sekarang"
+  },
+  "save_button": {
+    "message": "Simpan"
+  },
+  "update_button": {
+    "message": "Kemas kini"
+  },
+  "update_text": {
+    "message": "Menggantikan kata laluan “$1” dengan kata laluan baharu.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password dikunci. Buka kuncinya untuk menyimpan."
+  },
+  "saving": {
+    "message": "Menyimpan…"
+  },
+  "saved": {
+    "message": "Disimpan ke 2password"
+  },
+  "save_failed": {
+    "message": "Tidak dapat disimpan"
+  },
+  "otp_fill": {
+    "message": "Isi kata laluan sekali guna"
+  },
+  "otp_filled_title": {
+    "message": "Kata laluan sekali guna telah diisi"
+  },
+  "otp_filled_text": {
+    "message": "2password telah memasukkan kod pengesahan untuk $1.",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "Gunakan kaedah lain"
+  },
+  "pk_waiting": {
+    "message": "Menunggu buka kunci…"
+  },
+  "pk_locked_text": {
+    "message": "Untuk menggunakan 2password bagi kunci laluan, buka kuncinya dalam aplikasi."
+  },
+  "pk_save_title": {
+    "message": "Simpan kunci laluan ke 2password?"
+  },
+  "pk_save_text": {
+    "message": "Setelah disimpan, anda boleh menggunakannya pada komputer anda yang lain dengan 2password."
+  },
+  "pk_save": {
+    "message": "Simpan ke 2password"
+  },
+  "pk_creating": {
+    "message": "Mencipta…"
+  },
+  "pk_save_failed": {
+    "message": "Kunci laluan tidak dapat disimpan"
+  },
+  "pk_save_failed_text": {
+    "message": "Beralih kepada kaedah pelayar."
+  },
+  "pk_login_title": {
+    "message": "Log masuk dengan kunci laluan"
+  },
+  "pk_login_text": {
+    "message": "Pilih akaun."
+  },
+  "popup_checking": {
+    "message": "Menyemak…"
+  },
+  "popup_not_running": {
+    "message": "Aplikasi 2password tidak berjalan."
+  },
+  "popup_not_running_text": {
+    "message": "Mulakan aplikasi, buka kuncinya, dan buka ini sekali lagi."
+  },
+  "popup_not_allowed": {
+    "message": "Sambungan ini tidak didaftarkan dengan aplikasi."
+  },
+  "popup_not_allowed_step1": {
+    "message": "Buka “Tetapan” dalam aplikasi 2password"
+  },
+  "popup_not_allowed_step2": {
+    "message": "Masukkan ID ini di bawah “Nyatakan ID sambungan”"
+  },
+  "popup_not_allowed_step3": {
+    "message": "Klik “Sambung ke pelayar”"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "Tidak disambungkan ke aplikasi 2password."
+  },
+  "popup_no_host_step1": {
+    "message": "Mulakan aplikasi 2password"
+  },
+  "popup_no_host_step2": {
+    "message": "Klik “Tetapan” → “Sambungan pelayar” → “Sambung ke pelayar”"
+  },
+  "popup_no_host_step3": {
+    "message": "Mulakan semula pelayar"
+  },
+  "popup_ext_id": {
+    "message": "ID sambungan ini: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "Cipta peti besi dalam aplikasi 2password."
+  },
+  "popup_locked": {
+    "message": "2password dikunci."
+  },
+  "popup_unlock": {
+    "message": "Buka aplikasi dan buka kunci"
+  },
+  "popup_lookalike": {
+    "message": "Amaran: halaman ini kelihatan seperti “$1” yang anda simpan, tetapi ini laman yang berbeza.",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "Jangan masukkan kata laluan untuk $1 ($2) di sini. Semak alamat dengan teliti.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "Alamat ini berbeza daripada $1 ($2) yang anda simpan.",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "Untuk menggunakan item itu di sini juga, tambahkan alamat halaman ini pada URL item dalam aplikasi."
+  },
+  "popup_empty": {
+    "message": "Belum ada item untuk laman ini."
+  },
+  "popup_empty_text": {
+    "message": "Apabila anda log masuk, anda akan ditanya sama ada mahu menyimpan butiran log masuk. Apabila menambah dengan “+ Tambah” dalam aplikasi, masukkan alamat laman ini dalam medan URL."
+  },
+  "popup_click_to_fill": {
+    "message": "Klik item untuk mengisinya pada halaman ini."
+  },
+  "err_no_match": {
+    "message": "Tiada item yang sepadan dengan laman ini"
+  },
+  "err_insecure": {
+    "message": "Tidak tersedia pada halaman yang tidak disulitkan (http)"
+  },
+  "err_bad_origin": {
+    "message": "Tidak tersedia pada halaman ini."
+  },
+  "err_bad_rp": {
+    "message": "Halaman ini tidak boleh menggunakan kunci laluan untuk nama laman ini"
+  },
+  "err_expired": {
+    "message": "Tidak dapat disimpan kerana terlalu banyak masa telah berlalu"
+  },
+  "err_no_form": {
+    "message": "Tiada medan input ditemui pada halaman ini"
+  },
+  "err_no_content": {
+    "message": "Muat semula halaman dan cuba lagi"
+  },
+  "err_navigated": {
+    "message": "Halaman telah berubah, jadi tiada apa-apa yang diisi"
+  },
+  "err_exists": {
+    "message": "Kunci laluan untuk laman ini sudah disimpan"
+  },
+  "err_locked": {
+    "message": "2password dikunci"
+  },
+  "err_rate_limited": {
+    "message": "2password telah dikunci kerana banyak permintaan diterima dalam masa yang singkat"
+  },
+  "err_needs_approval": {
+    "message": "Ini kali pertama di laman ini. Benarkan dalam aplikasi 2password, kemudian pilih sekali lagi"
+  },
+  "err_bad_request": {
+    "message": "Permintaan tidak dapat diproses"
+  },
+  "err_failed": {
+    "message": "Operasi gagal"
+  }
+}

@@ -1,11 +1,12 @@
 {
   "name": "2password-browser-e2e",
   "private": true,
-  "description": "ブラウザでの通し確認（ヘッドレス Chrome + 拡張機能のスクリプト + 2pw）。パスキーとワンタイムパスワード",
+  "description": "ブラウザでの通し確認（ヘッドレス Chrome）。パスキー、ワンタイムパスワード、画面の多言語表示",
   "scripts": {
-    "test": "node passkey.cjs && node totp.cjs",
+    "test": "node passkey.cjs && node totp.cjs && node ui-i18n.cjs",
     "test:passkey": "node passkey.cjs",
-    "test:totp": "node totp.cjs"
+    "test:totp": "node totp.cjs",
+    "test:ui": "node ui-i18n.cjs"
   },
   "dependencies": {
     "@simplewebauthn/server": "^13.0.0",

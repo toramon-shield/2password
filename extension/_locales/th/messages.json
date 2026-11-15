@@ -1,0 +1,274 @@
+{
+  "ext_description": {
+    "message": "ใช้กับแอป 2password บนเดสก์ท็อป เพื่อป้อนข้อมูลหน้าลงชื่อเข้าใช้ บันทึกข้อมูลเข้าสู่ระบบ ป้อนรหัสแบบใช้ครั้งเดียว และเก็บพาสคีย์",
+    "description": "Chrome ウェブストアとマニフェストの説明。132 文字以内"
+  },
+  "no_username": {
+    "message": "(ไม่มีชื่อผู้ใช้)"
+  },
+  "who": {
+    "message": "$1 ($2)",
+    "description": "$1 = ユーザー名、$2 = サイトのホスト名"
+  },
+  "open_app": {
+    "message": "เปิดแอป"
+  },
+  "approve_title": {
+    "message": "โปรดอนุญาตในแอป 2password"
+  },
+  "approve_text": {
+    "message": "นี่เป็นครั้งแรกที่ใช้รายการนี้บนเว็บไซต์นี้ โปรดอนุญาตในแอป แล้วเลือกรายการอีกครั้ง"
+  },
+  "rate_limited_title": {
+    "message": "ล็อก 2password แล้ว"
+  },
+  "rate_limited_text": {
+    "message": "ล็อก 2password แล้ว เนื่องจากมีคำขอจำนวนมากในเวลาสั้น ๆ"
+  },
+  "locked_title": {
+    "message": "2password ล็อกอยู่"
+  },
+  "locked_text": {
+    "message": "โปรดปลดล็อกในแอป"
+  },
+  "generate_title": {
+    "message": "สร้างรหัสผ่านที่แข็งแรง"
+  },
+  "generate_sub": {
+    "message": "หลังส่งแบบฟอร์ม ระบบจะถามว่าจะบันทึกหรือไม่"
+  },
+  "lookalike_title": {
+    "message": "คำเตือน: นี่ไม่ใช่เว็บไซต์ที่คุณบันทึกไว้"
+  },
+  "lookalike_note_title": {
+    "message": "ดูคล้าย “$1” แต่เป็นเว็บไซต์อื่น",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "lookalike_note_text": {
+    "message": "หน้านี้คือ $1 ห้ามป้อนรหัสผ่านของ $2 ($3) ที่นี่ โปรดตรวจสอบที่อยู่เว็บให้ดี",
+    "description": "$1 = いまのページのホスト名、$2 = 保存済みのサイトのホスト名、$3 = 項目のタイトル"
+  },
+  "same_site_title": {
+    "message": "ที่อยู่เว็บต่างจาก $1 ($2)",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "same_site_text": {
+    "message": "หน้านี้คือ $1 หากต้องการใช้รายการที่นี่ด้วย โปรดเพิ่มที่อยู่เว็บนี้ใน URL ของรายการในแอป",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "open_app_sub_url": {
+    "message": "คุณเพิ่ม URL ได้จาก “แก้ไข” ของรายการ"
+  },
+  "idn_title": {
+    "message": "คำเตือน: โปรดตรวจสอบที่อยู่เว็บ"
+  },
+  "idn_note_title": {
+    "message": "ที่อยู่เว็บมีอักขระที่ผิดปกติ"
+  },
+  "idn_note_text": {
+    "message": "หน้านี้ ($1) อาจเป็นเว็บไซต์ปลอมที่ใช้อักขระซึ่งหน้าตาคล้ายกัน",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "insecure_title": {
+    "message": "หน้านี้ไม่ได้เข้ารหัส (http)"
+  },
+  "insecure_text": {
+    "message": "รหัสผ่านอาจถูกอ่านระหว่างการรับส่งข้อมูล จึงจะไม่ป้อนข้อมูลใด ๆ ในหน้านี้"
+  },
+  "locked_menu_open": {
+    "message": "เปิดแอปและปลดล็อก"
+  },
+  "locked_menu_sub": {
+    "message": "หลังปลดล็อกแล้ว โปรดคลิกช่องนี้อีกครั้ง"
+  },
+  "save_title": {
+    "message": "บันทึกข้อมูลการเข้าสู่ระบบนี้หรือไม่"
+  },
+  "update_title": {
+    "message": "อัปเดตรหัสผ่านหรือไม่"
+  },
+  "save_later": {
+    "message": "ไม่ใช่ตอนนี้"
+  },
+  "save_button": {
+    "message": "บันทึก"
+  },
+  "update_button": {
+    "message": "อัปเดต"
+  },
+  "update_text": {
+    "message": "แทนที่รหัสผ่านของ “$1” ด้วยรหัสผ่านใหม่",
+    "description": "$1 = 項目のタイトル"
+  },
+  "save_locked_text": {
+    "message": "2password ล็อกอยู่ ปลดล็อกเพื่อบันทึก"
+  },
+  "saving": {
+    "message": "กำลังบันทึก…"
+  },
+  "saved": {
+    "message": "บันทึกลงใน 2password แล้ว"
+  },
+  "save_failed": {
+    "message": "บันทึกไม่ได้"
+  },
+  "otp_fill": {
+    "message": "ป้อนรหัสผ่านแบบใช้ครั้งเดียว"
+  },
+  "otp_filled_title": {
+    "message": "ป้อนรหัสผ่านแบบใช้ครั้งเดียวแล้ว"
+  },
+  "otp_filled_text": {
+    "message": "2password ป้อนรหัสยืนยันสำหรับ $1 แล้ว",
+    "description": "$1 = いまのページのホスト名"
+  },
+  "pk_other": {
+    "message": "ใช้วิธีอื่น"
+  },
+  "pk_waiting": {
+    "message": "กำลังรอการปลดล็อก…"
+  },
+  "pk_locked_text": {
+    "message": "หากต้องการใช้ 2password สำหรับพาสคีย์ โปรดปลดล็อกในแอป"
+  },
+  "pk_save_title": {
+    "message": "บันทึกพาสคีย์ลงใน 2password หรือไม่"
+  },
+  "pk_save_text": {
+    "message": "เมื่อบันทึกแล้ว คุณจะใช้พาสคีย์นี้บนคอมพิวเตอร์เครื่องอื่นที่มี 2password ได้"
+  },
+  "pk_save": {
+    "message": "บันทึกลงใน 2password"
+  },
+  "pk_creating": {
+    "message": "กำลังสร้าง…"
+  },
+  "pk_save_failed": {
+    "message": "บันทึกพาสคีย์ไม่ได้"
+  },
+  "pk_save_failed_text": {
+    "message": "กำลังเปลี่ยนไปใช้วิธีของเบราว์เซอร์"
+  },
+  "pk_login_title": {
+    "message": "ลงชื่อเข้าใช้ด้วยพาสคีย์"
+  },
+  "pk_login_text": {
+    "message": "โปรดเลือกบัญชี"
+  },
+  "popup_checking": {
+    "message": "กำลังตรวจสอบ…"
+  },
+  "popup_not_running": {
+    "message": "แอป 2password ไม่ได้ทำงานอยู่"
+  },
+  "popup_not_running_text": {
+    "message": "โปรดเปิดแอปและปลดล็อก แล้วเปิดหน้านี้อีกครั้ง"
+  },
+  "popup_not_allowed": {
+    "message": "ส่วนขยายนี้ยังไม่ได้ลงทะเบียนกับแอป"
+  },
+  "popup_not_allowed_step1": {
+    "message": "เปิด “การตั้งค่า” ในแอป 2password"
+  },
+  "popup_not_allowed_step2": {
+    "message": "ป้อน ID นี้ใน “ระบุ ID ส่วนขยาย”"
+  },
+  "popup_not_allowed_step3": {
+    "message": "คลิก “เชื่อมต่อกับเบราว์เซอร์”"
+  },
+  "popup_id": {
+    "message": "ID: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_no_host": {
+    "message": "ยังไม่ได้เชื่อมต่อกับแอป 2password"
+  },
+  "popup_no_host_step1": {
+    "message": "เปิดแอป 2password"
+  },
+  "popup_no_host_step2": {
+    "message": "คลิก “การตั้งค่า” → “ส่วนขยายเบราว์เซอร์” → “เชื่อมต่อกับเบราว์เซอร์”"
+  },
+  "popup_no_host_step3": {
+    "message": "รีสตาร์ตเบราว์เซอร์"
+  },
+  "popup_ext_id": {
+    "message": "ID ของส่วนขยายนี้: $1",
+    "description": "$1 = 拡張機能の ID"
+  },
+  "popup_not_configured": {
+    "message": "โปรดสร้างคลังรหัสผ่านในแอป 2password"
+  },
+  "popup_locked": {
+    "message": "2password ล็อกอยู่"
+  },
+  "popup_unlock": {
+    "message": "เปิดแอปและปลดล็อก"
+  },
+  "popup_lookalike": {
+    "message": "คำเตือน: หน้านี้ดูคล้าย “$1” ที่คุณบันทึกไว้ แต่เป็นเว็บไซต์อื่น",
+    "description": "$1 = 保存済みのサイトのホスト名"
+  },
+  "popup_lookalike_text": {
+    "message": "ห้ามป้อนรหัสผ่านของ $1 ($2) ที่นี่ โปรดตรวจสอบที่อยู่เว็บให้ดี",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site": {
+    "message": "ที่อยู่เว็บนี้ต่างจาก $1 ($2) ที่คุณบันทึกไว้",
+    "description": "$1 = 保存済みのサイトのホスト名、$2 = 項目のタイトル"
+  },
+  "popup_same_site_text": {
+    "message": "หากต้องการใช้รายการที่นี่ด้วย โปรดเพิ่มที่อยู่เว็บของหน้านี้ใน URL ของรายการในแอป"
+  },
+  "popup_empty": {
+    "message": "ยังไม่มีรายการสำหรับเว็บไซต์นี้"
+  },
+  "popup_empty_text": {
+    "message": "เมื่อคุณลงชื่อเข้าใช้ ระบบจะถามว่าจะบันทึกข้อมูลการเข้าสู่ระบบหรือไม่ หากเพิ่มด้วย “+ เพิ่ม” ในแอป โปรดป้อนที่อยู่เว็บของเว็บไซต์นี้ในช่อง URL"
+  },
+  "popup_click_to_fill": {
+    "message": "คลิกรายการเพื่อป้อนข้อมูลในหน้านี้"
+  },
+  "err_no_match": {
+    "message": "ไม่มีรายการที่ตรงกับเว็บไซต์นี้"
+  },
+  "err_insecure": {
+    "message": "ใช้ไม่ได้ในหน้าที่ไม่ได้เข้ารหัส (http)"
+  },
+  "err_bad_origin": {
+    "message": "ใช้ไม่ได้ในหน้านี้"
+  },
+  "err_bad_rp": {
+    "message": "หน้านี้ใช้พาสคีย์สำหรับชื่อเว็บไซต์นี้ไม่ได้"
+  },
+  "err_expired": {
+    "message": "บันทึกไม่ได้เนื่องจากเวลาผ่านไปนานเกินไป"
+  },
+  "err_no_form": {
+    "message": "ไม่พบช่องป้อนข้อมูลในหน้านี้"
+  },
+  "err_no_content": {
+    "message": "โปรดโหลดหน้าใหม่แล้วลองอีกครั้ง"
+  },
+  "err_navigated": {
+    "message": "หน้าเปลี่ยนไปแล้ว จึงไม่ได้ป้อนข้อมูล"
+  },
+  "err_exists": {
+    "message": "บันทึกพาสคีย์สำหรับเว็บไซต์นี้ไว้แล้ว"
+  },
+  "err_locked": {
+    "message": "2password ล็อกอยู่"
+  },
+  "err_rate_limited": {
+    "message": "ล็อก 2password แล้ว เนื่องจากมีคำขอจำนวนมากในเวลาสั้น ๆ"
+  },
+  "err_needs_approval": {
+    "message": "นี่เป็นครั้งแรกบนเว็บไซต์นี้ โปรดอนุญาตในแอป 2password แล้วเลือกอีกครั้ง"
+  },
+  "err_bad_request": {
+    "message": "ไม่สามารถดำเนินการตามคำขอได้"
+  },
+  "err_failed": {
+    "message": "การดำเนินการล้มเหลว"
+  }
+}

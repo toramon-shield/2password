@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2password</title>
 <link rel="stylesheet" href="style.css">
+<script src="i18n.js" defer></script>
 <script src="app.js" defer></script>
 </head>
 <body>
+
+<!-- 文言は locales/<言語>.json にある。data-i18n のキーで差し替える -->
 
 <!-- ===== 読み込み中 ===== -->
 <section id="v-loading" class="view center"><div class="spinner"></div></section>
@@ -15,15 +18,16 @@
 <!-- ===== 初回セットアップ ===== -->
 <section id="v-welcome" class="view center" hidden>
   <div class="card narrow">
-    <div class="brand"><span class="logo">2P</span><span>2password</span></div>
-    <h1>ようこそ</h1>
-    <p class="muted">パスワードはこの端末の中で暗号化され、保存先には暗号文だけが置かれます。</p>
+    <div class="brand"><span class="logo">2P</span><span>2password</span>
+      <select class="lang-select" data-i18n-aria-label="settings.language"></select></div>
+    <h1 data-i18n="welcome.title"></h1>
+    <p class="muted" data-i18n="welcome.lead"></p>
     <div class="choices">
       <button class="choice" data-go="create">
-        <b>新しく始める</b><span>はじめて 2password を使う</span>
+        <b data-i18n="welcome.create"></b><span data-i18n="welcome.create_sub"></span>
       </button>
       <button class="choice" data-go="join">
-        <b>既存の保管庫に参加</b><span>別の端末で作った保管庫を、この端末でも使う（Emergency Kit が必要）</span>
+        <b data-i18n="welcome.join"></b><span data-i18n="welcome.join_sub"></span>
       </button>
     </div>
   </div>
@@ -32,60 +36,60 @@
 <!-- 保存先の選択（作成・参加で共通） -->
 <template id="t-storage">
   <fieldset class="storage">
-    <legend>保存先</legend>
+    <legend data-i18n="storage.legend"></legend>
     <label class="radio"><input type="radio" name="mode" value="drive" checked>
-      <span><b>Google Drive</b>（おすすめ）<small>ブラウザで Google にログインします。アプリが作ったファイルだけに触れます。</small></span></label>
+      <span><b>Google Drive</b> <span data-i18n="storage.recommended"></span><small data-i18n="storage.drive_note"></small></span></label>
     <label class="radio"><input type="radio" name="mode" value="folder">
-      <span><b>同期フォルダ</b><small>Google ドライブ for デスクトップなどのフォルダに保存します。</small></span></label>
-    <input class="folder-path" name="folder" placeholder="例: G:\マイドライブ\2password" hidden>
-    <p class="warn oauth-missing" hidden>この版には Google ログインの設定が含まれていません。同期フォルダを選ぶか、設定フォルダに oauth-client.json を置いてください。</p>
+      <span><b data-i18n="storage.folder"></b><small data-i18n="storage.folder_note"></small></span></label>
+    <input class="folder-path" name="folder" data-i18n-placeholder="storage.folder_placeholder" hidden>
+    <p class="warn oauth-missing" data-i18n="storage.oauth_missing" hidden></p>
   </fieldset>
 </template>
 
 <section id="v-create" class="view center" hidden>
   <form class="card narrow" id="f-create" autocomplete="off">
-    <button type="button" class="back" data-go="welcome">← 戻る</button>
-    <h1>新しい保管庫を作る</h1>
+    <button type="button" class="back" data-go="welcome" data-i18n="common.back"></button>
+    <h1 data-i18n="create.title"></h1>
     <div class="slot-storage"></div>
-    <label>アカウントパスワード
+    <label><span data-i18n="common.account_password"></span>
       <input type="password" name="password" required autocomplete="new-password">
     </label>
     <div class="meter"><i id="c-meter"></i></div>
-    <p class="hint" id="c-hint">単語を4〜5個つなげた、長いパスフレーズがおすすめです。</p>
-    <label>もう一度入力
+    <p class="hint" id="c-hint" data-i18n="create.hint"></p>
+    <label><span data-i18n="create.password2"></span>
       <input type="password" name="password2" required autocomplete="new-password">
     </label>
     <p class="error" role="alert"></p>
-    <button class="primary" type="submit">作成する</button>
-    <p class="muted small">作成すると Secret Key（128bit の乱数）がこの端末で生成されます。パスワードと Secret Key は、2password の作者にも Google にも送られません。</p>
+    <button class="primary" type="submit" data-i18n="create.submit"></button>
+    <p class="muted small" data-i18n="create.note"></p>
   </form>
 </section>
 
 <section id="v-created" class="view center" hidden>
   <div class="card narrow">
-    <h1>保管庫ができました</h1>
-    <p>この <b>Secret Key</b> は、新しい端末で使うときに必要です。<br>Emergency Kit を印刷して、施錠できる場所に保管してください。</p>
-    <div class="secret-key" id="sk-out"></div>
+    <h1 data-i18n="created.title"></h1>
+    <p data-i18n-html="created.lead_html"></p>
+    <div class="secret-key" id="sk-out" dir="ltr"></div>
     <p class="muted small" id="kit-path"></p>
-    <button class="secondary" id="b-open-kit">Emergency Kit を開いて印刷する</button>
-    <label class="check"><input type="checkbox" id="kit-done"> 印刷して保管しました（印刷後、Kit のファイルは削除してください）</label>
-    <button class="primary" id="b-created-next" disabled>使い始める</button>
+    <button class="secondary" id="b-open-kit" data-i18n="created.open_kit"></button>
+    <label class="check"><input type="checkbox" id="kit-done"> <span data-i18n="created.kit_done"></span></label>
+    <button class="primary" id="b-created-next" data-i18n="created.next" disabled></button>
   </div>
 </section>
 
 <section id="v-join" class="view center" hidden>
   <form class="card narrow" id="f-join" autocomplete="off">
-    <button type="button" class="back" data-go="welcome">← 戻る</button>
-    <h1>既存の保管庫に参加</h1>
+    <button type="button" class="back" data-go="welcome" data-i18n="common.back"></button>
+    <h1 data-i18n="join.title"></h1>
     <div class="slot-storage"></div>
-    <label>Secret Key（Emergency Kit に記載）
-      <input name="secret_key" required placeholder="2P1-XXXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX" spellcheck="false" autocapitalize="characters">
+    <label><span data-i18n="join.secret_key"></span>
+      <input name="secret_key" required placeholder="2P1-XXXXXX-XXXXX-XXXXX-XXXXX-XXXXX-XXXXXX" spellcheck="false" autocapitalize="characters" dir="ltr">
     </label>
-    <label>アカウントパスワード
+    <label><span data-i18n="common.account_password"></span>
       <input type="password" name="password" required autocomplete="current-password">
     </label>
     <p class="error" role="alert"></p>
-    <button class="primary" type="submit">参加する</button>
+    <button class="primary" type="submit" data-i18n="join.submit"></button>
   </form>
 </section>
 
@@ -95,9 +99,10 @@
     <div class="lock-icon">🔒</div>
     <h1>2password</h1>
     <p class="muted small" id="lock-where"></p>
-    <input type="password" name="password" placeholder="アカウントパスワード" required autofocus autocomplete="current-password">
+    <input type="password" name="password" data-i18n-placeholder="common.account_password" required autofocus autocomplete="current-password">
     <p class="error" role="alert"></p>
-    <button class="primary" type="submit">ロック解除</button>
+    <button class="primary" type="submit" data-i18n="lock.submit"></button>
+    <select class="lang-select lock-lang" data-i18n-aria-label="settings.language"></select>
   </form>
 </section>
 
@@ -105,16 +110,16 @@
 <section id="v-main" class="view main" hidden>
   <header class="topbar">
     <div class="brand"><span class="logo">2P</span><span>2password</span></div>
-    <input type="search" id="q" placeholder="検索（タイトル・ユーザー名・URL）">
-    <button class="primary" id="b-add">＋ 追加</button>
-    <button class="icon" id="b-sync" title="同期">⟳</button>
-    <button class="icon" id="b-settings" title="設定">⚙</button>
-    <button class="icon" id="b-lock" title="ロック">🔒</button>
+    <input type="search" id="q" data-i18n-placeholder="main.search">
+    <button class="primary" id="b-add" data-i18n="main.add"></button>
+    <button class="icon" id="b-sync" data-i18n-title="main.sync" data-i18n-aria-label="main.sync">⟳</button>
+    <button class="icon" id="b-settings" data-i18n-title="settings.title" data-i18n-aria-label="settings.title">⚙</button>
+    <button class="icon" id="b-lock" data-i18n-title="main.lock" data-i18n-aria-label="main.lock">🔒</button>
   </header>
   <div class="split">
-    <nav class="list" id="list" aria-label="項目"></nav>
+    <nav class="list" id="list" data-i18n-aria-label="main.items"></nav>
     <article class="detail" id="detail">
-      <div class="empty muted">左の一覧から項目を選ぶか、「＋ 追加」で登録してください。</div>
+      <div class="empty muted" data-i18n="main.empty"></div>
     </article>
   </div>
 </section>
@@ -122,25 +127,25 @@
 <!-- ===== 追加・編集 ===== -->
 <dialog id="d-edit">
   <form method="dialog" id="f-edit" autocomplete="off">
-    <h2 id="edit-title">項目を追加</h2>
-    <label>タイトル <input name="title" required></label>
-    <label>ユーザー名 <input name="username" autocomplete="off"></label>
-    <label>パスワード
+    <h2 id="edit-title"></h2>
+    <label><span data-i18n="edit.title"></span> <input name="title" required></label>
+    <label><span data-i18n="field.username"></span> <input name="username" autocomplete="off"></label>
+    <label><span data-i18n="field.password"></span>
       <span class="row">
-        <input name="password" type="password" autocomplete="new-password" placeholder="空なら自動生成">
-        <button type="button" class="secondary" id="b-gen">生成</button>
-        <button type="button" class="secondary" id="b-peek">表示</button>
+        <input name="password" type="password" autocomplete="new-password">
+        <button type="button" class="secondary" id="b-gen" data-i18n="btn.generate"></button>
+        <button type="button" class="secondary" id="b-peek" data-i18n="btn.show"></button>
       </span>
     </label>
-    <label>URL（1行に1つ） <textarea name="urls" rows="2"></textarea></label>
-    <label>ワンタイムパスワード（2 段階認証）の設定キー <input name="totp" type="password" autocomplete="off" spellcheck="false" placeholder="なければ空のまま"></label>
-    <p class="muted small">サイトの 2 段階認証の設定で、QR コードの近くに表示される英数字（「QR コードを読み取れない場合」「セットアップキー」など）を貼り付けます。<code>otpauth://</code> で始まる URL も使えます。</p>
-    <p class="muted small">ブラウザの自動入力は、ここに書いたホスト名と同じページでだけ働きます。サブドメインでも使うときは <code>*.example.com</code> のように書きます。</p>
-    <label>メモ <textarea name="notes" rows="3"></textarea></label>
+    <label><span data-i18n="edit.urls"></span> <textarea name="urls" rows="2" dir="ltr"></textarea></label>
+    <label><span data-i18n="edit.totp"></span> <input name="totp" type="password" autocomplete="off" spellcheck="false" dir="ltr"></label>
+    <p class="muted small" data-i18n-html="edit.totp_help_html"></p>
+    <p class="muted small" data-i18n-html="edit.url_help_html"></p>
+    <label><span data-i18n="field.notes"></span> <textarea name="notes" rows="3"></textarea></label>
     <p class="error" role="alert"></p>
     <div class="actions">
-      <button type="button" class="secondary" id="b-edit-cancel">キャンセル</button>
-      <button class="primary" type="submit" id="b-edit-save">保存</button>
+      <button type="button" class="secondary" id="b-edit-cancel" data-i18n="btn.cancel"></button>
+      <button class="primary" type="submit" id="b-edit-save" data-i18n="btn.save"></button>
     </div>
   </form>
 </dialog>
@@ -151,8 +156,8 @@
     <h2 id="confirm-title"></h2>
     <p id="confirm-body"></p>
     <div class="actions">
-      <button value="no" class="secondary">キャンセル</button>
-      <button value="yes" class="danger" id="confirm-yes">実行</button>
+      <button value="no" class="secondary" data-i18n="btn.cancel"></button>
+      <button value="yes" class="danger" id="confirm-yes"></button>
     </div>
   </form>
 </dialog>
@@ -160,17 +165,17 @@
 <!-- ===== ブラウザ拡張からの初回の確認 ===== -->
 <dialog id="d-approve">
   <form method="dialog">
-    <h2 id="ap-what">このサイトでパスワードを使いますか？</h2>
-    <p class="muted small">ブラウザの拡張機能が、次のサイトでのログインを求めています。このサイトで使うのは初めてです。</p>
-    <p class="approve-host" id="ap-host"></p>
+    <h2 id="ap-what"></h2>
+    <p class="muted small" data-i18n="approve.lead"></p>
+    <p class="approve-host" id="ap-host" dir="ltr"></p>
     <dl class="kv">
-      <dt>項目</dt><dd id="ap-title"></dd>
-      <dt>ユーザー名</dt><dd id="ap-user"></dd>
+      <dt data-i18n="approve.item"></dt><dd id="ap-title"></dd>
+      <dt data-i18n="field.username"></dt><dd id="ap-user"></dd>
     </dl>
-    <p class="small">いまブラウザでこのサイトを開いて、ログインしようとしていますか？ 心当たりがなければ「拒否」を押してください。</p>
+    <p class="small" data-i18n="approve.question"></p>
     <div class="actions">
-      <button value="no" class="secondary">拒否</button>
-      <button value="yes" class="primary">許可する</button>
+      <button value="no" class="secondary" data-i18n="approve.deny"></button>
+      <button value="yes" class="primary" data-i18n="approve.allow"></button>
     </div>
   </form>
 </dialog>
@@ -178,60 +183,63 @@
 <!-- ===== 設定 ===== -->
 <dialog id="d-settings" class="wide">
   <div class="settings">
-    <div class="settings-head"><h2>設定</h2><button class="icon" id="b-settings-close">✕</button></div>
+    <div class="settings-head"><h2 data-i18n="settings.title"></h2><button class="icon" id="b-settings-close" data-i18n-title="settings.close" data-i18n-aria-label="settings.close">✕</button></div>
 
-    <h3>保管場所</h3>
+    <h3 data-i18n="settings.language"></h3>
+    <select class="lang-select" data-i18n-aria-label="settings.language"></select>
+
+    <h3 data-i18n="settings.storage"></h3>
     <dl class="kv" id="st-kv"></dl>
-    <p class="muted small">Google Drive から見えるのは、ファイル名・サイズ・更新時刻と、意味のない暗号文だけです。</p>
-    <pre class="hex" id="st-hex"></pre>
+    <p class="muted small" data-i18n="settings.storage_note"></p>
+    <pre class="hex" id="st-hex" dir="ltr"></pre>
 
-    <h3>Google アカウント</h3>
+    <h3 data-i18n="settings.google"></h3>
     <div class="row wrap">
-      <button class="secondary" id="b-google-login">Google にログイン</button>
-      <button class="secondary" id="b-google-logout">ログアウト（トークンを無効化）</button>
-      <button class="secondary" id="b-migrate" hidden>同期フォルダから Google Drive へ移す</button>
+      <button class="secondary" id="b-google-login" data-i18n="settings.google_login"></button>
+      <button class="secondary" id="b-google-logout" data-i18n="settings.google_logout"></button>
+      <button class="secondary" id="b-migrate" data-i18n="settings.migrate" hidden></button>
     </div>
 
-    <h3>アカウントパスワードの変更</h3>
+    <h3 data-i18n="settings.passwd"></h3>
     <form id="f-passwd" class="row wrap" autocomplete="off">
-      <input type="password" name="current" placeholder="現在のパスワード" autocomplete="current-password" required>
-      <input type="password" name="password" placeholder="新しいパスワード" autocomplete="new-password" required>
-      <input type="password" name="password2" placeholder="もう一度" autocomplete="new-password" required>
-      <button class="secondary" type="submit">変更</button>
+      <input type="password" name="current" data-i18n-placeholder="settings.passwd_current" autocomplete="current-password" required>
+      <input type="password" name="password" data-i18n-placeholder="settings.passwd_new" autocomplete="new-password" required>
+      <input type="password" name="password2" data-i18n-placeholder="settings.passwd_again" autocomplete="new-password" required>
+      <button class="secondary" type="submit" data-i18n="settings.passwd_submit"></button>
     </form>
-    <p class="muted small">保管庫本体は再暗号化せず、Vault Key を包み直すだけです。他の端末でも次回から新しいパスワードを使います。</p>
+    <p class="muted small" data-i18n="settings.passwd_note"></p>
 
-    <h3>ブラウザ拡張機能</h3>
-    <p class="muted small">Chrome / Edge / Brave の拡張機能から、ログイン画面への自動入力と、ログイン後の保存ができます。拡張機能を入れたあと、ここで接続してください。</p>
+    <h3 data-i18n="settings.browser"></h3>
+    <p class="muted small" data-i18n="settings.browser_note"></p>
     <p class="small" id="br-state"></p>
     <div class="row wrap">
-      <button class="secondary" id="b-browser-install">ブラウザと接続する</button>
-      <button class="secondary" id="b-browser-uninstall">接続を解除</button>
+      <button class="secondary" id="b-browser-install" data-i18n="settings.browser_connect"></button>
+      <button class="secondary" id="b-browser-uninstall" data-i18n="settings.browser_disconnect"></button>
     </div>
     <details class="small">
-      <summary>拡張機能の ID を指定する（自分でビルドした拡張を使う場合）</summary>
-      <input id="br-extid" placeholder="chrome://extensions に表示される 32 文字の ID" spellcheck="false" maxlength="32">
+      <summary data-i18n="settings.browser_extid"></summary>
+      <input id="br-extid" data-i18n-placeholder="settings.browser_extid_placeholder" spellcheck="false" maxlength="32" dir="ltr">
       <p class="muted small" id="br-ids"></p>
     </details>
-    <p class="muted small">項目をそのサイトで初めて使うときは、このアプリの画面で確認します。短い時間に要求が続いた場合は、自動でロックします。暗号化されていないページ（http）には入力しません。</p>
+    <p class="muted small" data-i18n="settings.browser_guard"></p>
     <details class="small">
-      <summary>拡張機能からの要求の履歴（ロックすると消えます）</summary>
+      <summary data-i18n="settings.browser_log"></summary>
       <ul class="log" id="br-log"></ul>
       <div class="row wrap">
-        <button class="secondary" id="b-browser-forget">確認済みのサイトを取り消す</button>
+        <button class="secondary" id="b-browser-forget" data-i18n="settings.browser_forget"></button>
         <span class="muted small" id="br-approved"></span>
       </div>
     </details>
 
-    <h3>他のツールから取り込む</h3>
-    <p class="muted small">1Password・Chrome・Edge・Bitwarden などが書き出した CSV を取り込みます。取り込んだあと、CSV ファイル（平文のパスワード入り）は削除してください。</p>
+    <h3 data-i18n="settings.import"></h3>
+    <p class="muted small" data-i18n="settings.import_note"></p>
     <input type="file" id="f-import" accept=".csv,text/csv" hidden>
-    <button class="secondary" id="b-import">CSV を選んで取り込む</button>
+    <button class="secondary" id="b-import" data-i18n="settings.import_button"></button>
 
-    <h3>この端末</h3>
-    <p class="muted small">5分間操作がないと自動でロックします。コピーしたパスワードは30秒後にクリップボードから消えます。</p>
-    <button class="danger" id="b-forget">この端末から消す</button>
-    <p class="muted small">この端末の設定と Secret Key を消します。保管場所の暗号文は残り、Emergency Kit があれば再び参加できます。</p>
+    <h3 data-i18n="settings.device"></h3>
+    <p class="muted small" data-i18n="settings.device_note"></p>
+    <button class="danger" id="b-forget" data-i18n="settings.device_forget"></button>
+    <p class="muted small" data-i18n="settings.device_forget_note"></p>
     <p class="muted small" id="st-version"></p>
   </div>
 </dialog>
