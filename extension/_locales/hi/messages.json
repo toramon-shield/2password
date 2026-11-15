@@ -17,7 +17,34 @@
     "message": "2password ऐप में अनुमति दें"
   },
   "approve_text": {
-    "message": "यह आइटम इस साइट पर पहली बार इस्तेमाल हो रहा है। ऐप में अनुमति दें, फिर आइटम दोबारा चुनें।"
+    "message": "ऐप में अनुमति मिलते ही यह पेज भर दिया जाएगा (पासवर्ड स्क्रीन पर कभी नहीं दिखाया जाता)।"
+  },
+  "denied_title": {
+    "message": "2password ऐप में अस्वीकार किया गया"
+  },
+  "denied_text": {
+    "message": "इस पेज पर कुछ नहीं भरा गया।"
+  },
+  "approve_expired_title": {
+    "message": "अनुमति का इंतज़ार बंद कर दिया गया"
+  },
+  "approve_expired_text": {
+    "message": "ऐप में पुष्टि नहीं हुई। आइटम फिर से चुनें।"
+  },
+  "filled_title": {
+    "message": "2password ने भर दिया"
+  },
+  "filled_text": {
+    "message": "“$1” का उपयोगकर्ता नाम और पासवर्ड भर दिया गया।",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "2password से भरें: $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "2password पासकी से साइन इन करें: $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "2password लॉक कर दिया गया"
@@ -263,7 +290,7 @@
     "message": "कम समय में बहुत सारे अनुरोध आए, इसलिए 2password लॉक कर दिया गया"
   },
   "err_needs_approval": {
-    "message": "इस साइट पर यह पहली बार है। 2password ऐप में अनुमति दें, फिर दोबारा चुनें"
+    "message": "2password ऐप में अनुमति ज़रूरी है"
   },
   "err_bad_request": {
     "message": "अनुरोध प्रोसेस नहीं किया जा सका"

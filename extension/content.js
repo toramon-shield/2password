@@ -6,6 +6,10 @@
 // - 項目を選んでログインしたあとに認証コードの欄が出たら、ワンタイムパスワードも入力する
 // - サイトがパスキーを作る・使うときは、2password を保管場所として選べるようにする
 // - 表示する部品は closed な Shadow DOM の中に作り、ページのスクリプトから読めないようにする
+// - アプリでの許可が要るときは、許可されるまで待ってから入力する
+// - AI エージェント（Claude Code・Codex など）がブラウザを操作するときも使えるよう、候補には
+//   読み上げ用の名前を付け、キーボード（↓・↑・Enter）でも選べるようにする。
+//   エージェントはクリックするだけで、パスワードは拡張機能とアプリの間でだけ受け渡す
 (() => {
   'use strict';
   if (window.top !== window) return; // 最上位のフレームだけ
@@ -84,7 +88,7 @@
     .logo { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; background: #4f46e5; color: #fff; font-weight: 700; font-size: 10px; }
     button { all: unset; box-sizing: border-box; cursor: pointer; font: inherit; }
     .item { display: block; width: 100%; padding: 8px 12px; }
-    .item:hover, .item:focus-visible { background: #eef2ff; }
+    .item:hover, .item:focus-visible, .item.active { background: #eef2ff; }
     .item b { display: block; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .item span { display: block; font-size: 12px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .banner { top: 16px; inset-inline-end: 16px; width: 320px; padding: 14px; }
@@ -101,7 +105,7 @@
     @media (prefers-color-scheme: dark) {
       .box { color: #f3f4f6; background: #1f2937; border-color: #374151; }
       .head { color: #9ca3af; border-color: #374151; }
-      .item:hover, .item:focus-visible { background: #312e81; }
+      .item:hover, .item:focus-visible, .item.active { background: #312e81; }
       .item span { color: #9ca3af; }
       .banner p { color: #d1d5db; }
       .btn { background: #374151; color: #f3f4f6; }
@@ -116,6 +120,8 @@
     const host = document.createElement('div');
     host.lang = LANG;
     host.dir = DIR;
+    // ページの中から 2password の表示だと分かる目印（中身は closed な Shadow DOM の中で、ページからは読めない）
+    host.dataset.twopassword = '';
     const root = host.attachShadow({ mode: 'closed' });
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(CSS);
@@ -134,12 +140,20 @@
     h.append(el('span', 'logo', '2P'), el('span', '', text));
     return h;
   };
-  /** 利用者の実際のクリックだけを受け付けるボタン */
+  /** 利用者の実際のクリックだけを受け付けるボタン（キーボードで選んだときは run を呼ぶ） */
   const button = (cls, onClick) => {
     const b = el('button', cls);
     b.type = 'button';
     b.addEventListener('mousedown', e => e.preventDefault()); // 入力欄のフォーカスを奪わない
     b.addEventListener('click', e => { if (e.isTrusted) onClick(); });
+    b.run = onClick;
+    return b;
+  };
+  /** 候補のボタン：見出し・補足と、読み上げ用の名前 */
+  const itemButton = (title, sub, label, onClick) => {
+    const b = button('item', onClick);
+    b.append(el('b', '', title), el('span', '', sub));
+    b.setAttribute('aria-label', label);
     return b;
   };
 
@@ -149,13 +163,17 @@
     return n;
   };
 
-  /** 右上に短いお知らせを出す（アプリでの確認が必要なときなど） */
+  /** 右上に短いお知らせを出す（アプリでの確認が必要なときなど）。ms が 0 なら消すまで出す */
   let notice = null;
-  function showNotice(title, text, warn) {
+  function hideNotice() {
+    if (notice) { notice.remove(); notice = null; }
+  }
+  function showNotice(title, text, warn, ms = 9000) {
     if (notice) notice.remove();
     const { host, root } = makeLayer();
     notice = host;
     const box = el('div', 'box banner');
+    box.setAttribute('role', warn ? 'alert' : 'status');
     const h = el('h1');
     h.append(el('span', 'logo', '2P'), el('span', '', title));
     const p = el('p', '', text);
@@ -163,7 +181,7 @@
     if (warn) p.style.color = '#dc2626';
     box.append(h, p);
     root.append(box);
-    setTimeout(() => { if (notice === host) { host.remove(); notice = null; } }, 9000);
+    if (ms) setTimeout(() => { if (notice === host) { host.remove(); notice = null; } }, ms);
   }
   /** パスワードを受け取れなかった理由を知らせる */
   function explain(res) {
@@ -172,9 +190,57 @@
     else if (res.error === 'locked') showNotice(t('locked_title'), t('locked_text'));
   }
 
+  // ---------------- アプリでの許可を待つ ----------------
+  //
+  // 初めてのサイト（「入力のたびに確認する」設定なら毎回）は、アプリの画面で利用者が許可する。
+  // 許可されるまでお知らせを出して待ち、許可されたら選び直さなくても入力する。
+  // 待っている間の問い合わせは状態を聞くだけで、パスワードは許可のあとに 1 回だけ受け取る。
+
+  let waiting = 0; // いま待っている確認の番号（新しい確認を始めたら、古い待ちはやめる）
+  async function waitApproval(id) {
+    const mine = ++waiting;
+    showNotice(t('approve_title'), t('approve_text'), false, 0);
+    const until = Date.now() + 125000;
+    while (Date.now() < until) {
+      await new Promise(r => setTimeout(r, 1000));
+      if (mine !== waiting) return 'superseded';
+      const res = await send({ type: 'approval', id });
+      const state = res.ok ? res.state : res.error;
+      if (state === 'pending') continue;
+      if (mine === waiting) hideNotice();
+      if (state === 'denied') showNotice(t('denied_title'), t('denied_text'), true);
+      else if (state !== 'allowed' && res.ok) showNotice(t('approve_expired_title'), t('approve_expired_text'));
+      else if (state !== 'allowed') explain(res);
+      return state;
+    }
+    if (mine === waiting) hideNotice();
+    return 'timeout';
+  }
+
+  /** 項目を要求する。許可が要るときは待ってから、もう一度要求する */
+  async function request(msg) {
+    const got = await send(msg);
+    if (got.ok || got.error !== 'needs_approval') return got;
+    cache = null;
+    if (await waitApproval(msg.id) !== 'allowed') return { ok: false, error: 'waited' };
+    return send(msg);
+  }
+
+  /** 選んだ項目を入力する（キーボード・クリックのどちらからでも） */
+  async function fillItem(targets, it) {
+    const got = await request({ type: 'fill', id: it.id });
+    if (!got.ok) { cache = null; if (got.error !== 'waited') explain(got); return; }
+    const alive = [targets.user, targets.pass].some(f => f && f.isConnected);
+    if (!alive || !fill(targets, got.username, got.password)) return;
+    // 入力したことを知らせる（パスワードは表示しない）。エージェントは画面でこれを確かめられる
+    showNotice(t('filled_title'), t('filled_text', it.title), false, 5000);
+    // 2 段階認証のコードを持つ項目なら、このあと出る認証コードの欄にも入力する
+    if (got.totp) { otpArmed = true; setTimeout(tryOtp, 600); }
+  }
+
   // ---------------- 候補の一覧 ----------------
 
-  let menu = null; // { host, field }
+  let menu = null; // { host, field, items, index }
   let cache = null; // { at, res }
   const dismissed = new WeakSet(); // Esc で閉じた欄には、再フォーカスまで出さない
 
@@ -200,29 +266,21 @@
     let title = '2password';
     if (res.ok) {
       for (const it of res.items) {
-        const b = button('item', async () => {
+        const user = it.username || t('no_username');
+        rows.push(itemButton(it.title, user, t('aria_fill', it.title, user), () => {
           closeMenu();
-          const got = await send({ type: 'fill', id: it.id });
-          if (got.ok) {
-            fill(targets, got.username, got.password);
-            // 2 段階認証のコードを持つ項目なら、このあと出る認証コードの欄にも入力する
-            if (got.totp) { otpArmed = true; setTimeout(tryOtp, 600); }
-          } else { cache = null; explain(got); }
-        });
-        b.append(el('b', '', it.title), el('span', '', it.username || t('no_username')));
-        rows.push(b);
+          fillItem(targets, it);
+        }));
       }
       // 新しいパスワードを決める欄では、強いパスワードの生成も出す
       const wantsNew = targets.pass && (field.autocomplete || '').includes('new-password');
       if (wantsNew) {
-        const b = button('item', async () => {
+        rows.push(itemButton(t('generate_title'), t('generate_sub'), t('generate_title'), async () => {
           closeMenu();
           const got = await send({ type: 'generate' });
           if (!got.ok) return;
           inputsIn(scopeOf(field)).filter(isPassword).forEach(p => setValue(p, got.password));
-        });
-        b.append(el('b', '', t('generate_title')), el('span', '', t('generate_sub')));
-        rows.push(b);
+        }));
       }
       // 一致する項目がないとき：保存済みのサイトに似ていれば注意する（偽サイト対策）
       const rel = !res.items.length && res.related;
@@ -263,9 +321,19 @@
     box.style.left = Math.max(8, Math.min(start, innerWidth - width - 8)) + 'px';
     if (innerHeight - r.bottom > 180) box.style.top = r.bottom + 4 + 'px';
     else box.style.bottom = innerHeight - r.top + 4 + 'px';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-label', title);
     box.append(head(title), ...rows);
     root.append(box);
-    menu = { host, field };
+    menu = { host, field, items: rows.filter(r => r.run), index: -1 };
+  }
+
+  /** キーボードで候補を選ぶ（↓・↑ で移り、Enter で入力する） */
+  function moveMenu(step) {
+    if (!menu || !menu.items.length) return;
+    const n = menu.items.length;
+    menu.index = menu.index < 0 ? (step > 0 ? 0 : n - 1) : (menu.index + step + n) % n;
+    menu.items.forEach((b, i) => b.classList.toggle('active', i === menu.index));
   }
 
   document.addEventListener('focusin', e => {
@@ -279,7 +347,25 @@
     if (menu && e.target === menu.field) { setTimeout(() => { if (menu && document.activeElement !== menu.field) closeMenu(); }, 150); }
   }, true);
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && menu) { dismissed.add(menu.field); closeMenu(); }
+    if (e.key === 'Escape' && menu) { dismissed.add(menu.field); closeMenu(); return; }
+    // ページのスクリプトが作ったキー入力（isTrusted でない）では選ばない
+    if (!e.isTrusted || !(e.target instanceof HTMLInputElement)) return;
+    if (menu && e.target === menu.field && menu.items.length) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        moveMenu(e.key === 'ArrowDown' ? 1 : -1);
+      } else if (e.key === 'Enter' && menu.index >= 0) {
+        // フォームを送信させない
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        menu.items[menu.index].run();
+      }
+    } else if (!menu && e.key === 'ArrowDown') {
+      // 閉じた候補を ↓ で開き直す
+      dismissed.delete(e.target);
+      if (!targetsFor(e.target) && isOtp(e.target)) openOtpMenu(e.target);
+      else openMenu(e.target);
+    }
   }, true);
   document.addEventListener('click', e => {
     // 一度閉じたあとでも、欄をクリックし直せば開く
@@ -439,14 +525,14 @@
     const res = await listItems();
     if (document.activeElement !== field || !res.ok) return;
     const rows = res.items.filter(it => it.totp).map(it => {
-      const b = button('item', async () => {
+      const sub = [it.title, it.username].filter(Boolean).join(' · ');
+      return itemButton(t('otp_fill'), sub, `${t('otp_fill')}: ${sub}`, async () => {
         closeMenu();
-        const got = await send({ type: 'otp', id: it.id });
-        if (got.ok) fillOtp(field, got.code);
-        else { cache = null; explain(got); }
+        const got = await request({ type: 'otp', id: it.id });
+        if (got.ok) {
+          if (field.isConnected) fillOtp(field, got.code);
+        } else { cache = null; if (got.error !== 'waited') explain(got); }
       });
-      b.append(el('b', '', t('otp_fill')), el('span', '', [it.title, it.username].filter(Boolean).join(' · ')));
-      return b;
     });
     if (rows.length) showMenu(field, '2password', rows);
   }
@@ -537,19 +623,18 @@
     if (!res.ok && res.error === 'locked') return pkLocked(id, () => pkGet(id, d));
     if (!res.ok || !res.items.length) return pkReply(id, { action: 'native' });
     const rows = res.items.map(it => {
-      const b = button('item', async () => {
-        const got = await send({ type: 'passkey-get', rp_id: d.rp_id, id: it.id, challenge: d.challenge });
+      const user = it.username || t('no_username');
+      return itemButton(it.title, user, t('aria_passkey', it.title, user), async () => {
+        const got = await request({ type: 'passkey-get', rp_id: d.rp_id, id: it.id, challenge: d.challenge });
         if (got.ok) { pkClose(); return pkReply(id, { action: 'done', credential: got }); }
+        // 許可されなかったときは、もう一度選べるよう画面を残す
+        if (got.error === 'waited') return;
         explain(got);
-        // 初回の確認は、アプリで許可したあとにもう一度選べるよう、画面を残す
-        if (got.error === 'needs_approval') return;
         pkClose();
         pkReply(id, got.error === 'rate_limited'
           ? { action: 'error', name: 'NotAllowedError', message: errText(got) }
           : { action: 'native' });
       });
-      b.append(el('b', '', it.title), el('span', '', it.username || t('no_username')));
-      return b;
     });
     pkShow(id, t('pk_login_title'), `${location.host}\n${t('pk_login_text')}`, rows, [pkOther(id)]);
   }

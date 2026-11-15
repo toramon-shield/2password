@@ -196,7 +196,9 @@ async fn create_account(
         vault_client::check_new_password(&p1, &p2, false).map_err(err)?;
         let kit_path = docs.join("2password-emergency-kit.html");
         let r = match &kit {
-            Some(text) => vault_client::init_account_with_kit(choice(&mode, folder), &p1, &kit_path, text),
+            Some(text) => {
+                vault_client::init_account_with_kit(choice(&mode, folder), &p1, &kit_path, text)
+            }
             None => vault_client::init_account(choice(&mode, folder), &p1, &kit_path),
         }
         .map_err(err)?;
@@ -520,16 +522,30 @@ struct BrowserStatus {
     extra_extension_ids: Vec<String>,
     /// 確認済みの「項目とサイト」の組み合わせの数
     approved_sites: usize,
+    /// 入力のたびに確認する（AI エージェントにブラウザを操作させるとき向け）
+    confirm_each: bool,
 }
 
 #[tauri::command]
 fn browser_status(st: State<'_, St>) -> BrowserStatus {
+    let guard = st.guard.lock().unwrap();
     BrowserStatus {
         installed: bridge::native_host_installed(),
         dev_extension_id: bridge::DEV_EXTENSION_ID,
         extra_extension_ids: bridge::extra_extension_ids(),
-        approved_sites: st.guard.lock().unwrap().approved_count(),
+        approved_sites: guard.approved_count(),
+        confirm_each: guard.confirm_each(),
     }
+}
+
+/// 「入力のたびに確認する」を切り替える
+#[tauri::command]
+fn browser_set_confirm_each(st: State<'_, St>, on: bool) -> Res<()> {
+    st.guard
+        .lock()
+        .unwrap()
+        .set_confirm_each(on, true)
+        .map_err(err)
 }
 
 /// 利用者の確認を待っている、ブラウザ拡張からの要求
@@ -709,6 +725,7 @@ fn main() {
             browser_approve,
             browser_log,
             browser_forget_approvals,
+            browser_set_confirm_each,
             import_csv,
         ])
         .run(tauri::generate_context!())

@@ -88,6 +88,8 @@ async function onContentMessage(msg, sender) {
     // 利用者が認証コードの欄で項目を選んだ
     case 'otp':
       return native({ type: 'totp', origin, id: text(msg.id) });
+    case 'approval':
+      return native({ type: 'approval', origin, id: text(msg.id) });
     case 'generate':
       return native({ type: 'generate' });
     case 'focus':

@@ -17,7 +17,34 @@
     "message": "2password アプリで許可してください"
   },
   "approve_text": {
-    "message": "このサイトで使うのは初めてです。アプリの画面で許可してから、もう一度項目を選んでください。"
+    "message": "アプリの画面で許可されると、このページに入力します（パスワードは画面に表示しません）。"
+  },
+  "denied_title": {
+    "message": "2password アプリで拒否されました"
+  },
+  "denied_text": {
+    "message": "このページには入力しませんでした。"
+  },
+  "approve_expired_title": {
+    "message": "許可を待つのをやめました"
+  },
+  "approve_expired_text": {
+    "message": "アプリで確認できませんでした。もう一度項目を選んでください。"
+  },
+  "filled_title": {
+    "message": "2password で入力しました"
+  },
+  "filled_text": {
+    "message": "「$1」のユーザー名とパスワードを入力しました。",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "2password で入力: $1（$2）",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "2password のパスキーでログイン: $1（$2）",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "2password をロックしました"
@@ -263,7 +290,7 @@
     "message": "短い時間に要求が続いたため、2password をロックしました"
   },
   "err_needs_approval": {
-    "message": "このサイトで使うのは初めてです。2password アプリで許可してから、もう一度選んでください"
+    "message": "2password アプリでの許可が必要です"
   },
   "err_bad_request": {
     "message": "処理できない内容です"

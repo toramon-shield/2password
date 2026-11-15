@@ -17,7 +17,31 @@
     "message": "Allow it in the 2password app"
   },
   "approve_text": {
-    "message": "This is the first time this item is used on this site. Allow it in the app, then choose the item again."
+    "message": "Once you allow it in the app, 2password fills in this page (the password is never shown on screen)."
+  },
+  "denied_title": {
+    "message": "Denied in the 2password app"
+  },
+  "denied_text": {
+    "message": "Nothing was filled on this page."
+  },
+  "approve_expired_title": {
+    "message": "Stopped waiting for approval"
+  },
+  "approve_expired_text": {
+    "message": "It was not confirmed in the app. Choose the item again."
+  },
+  "filled_title": {
+    "message": "Filled by 2password"
+  },
+  "filled_text": {
+    "message": "Filled in the username and password of “$1”."
+  },
+  "aria_fill": {
+    "message": "Fill with 2password: $1 ($2)"
+  },
+  "aria_passkey": {
+    "message": "Sign in with a 2password passkey: $1 ($2)"
   },
   "rate_limited_title": {
     "message": "2password is now locked"
@@ -263,7 +287,7 @@
     "message": "2password was locked because many requests arrived in a short time"
   },
   "err_needs_approval": {
-    "message": "This is the first time on this site. Allow it in the 2password app, then choose again"
+    "message": "Allow it in the 2password app"
   },
   "err_bad_request": {
     "message": "The request could not be processed"

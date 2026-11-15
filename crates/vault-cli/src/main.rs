@@ -1,16 +1,24 @@
 //! 2pw — 2password のコマンドラインクライアント（処理の本体は vault-client）
 #![forbid(unsafe_code)]
 
+// 表示言語に訳して出力する（原文は日本語。訳は app/ui/locales の rust 節）
+macro_rules! say {
+    ($($a:tt)*) => { println!("{}", vault_client::i18n::tr(&format!($($a)*))) };
+}
+macro_rules! esay {
+    ($($a:tt)*) => { eprintln!("{}", vault_client::i18n::tr(&format!($($a)*))) };
+}
+
 mod attack;
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
 use secrecy::{ExposeSecret, SecretString};
 use std::io::BufRead;
 use std::path::PathBuf;
 use vault_client::config::Backend;
+use vault_client::i18n::tr;
 use vault_client::{
-    ItemInput, R, Session, StoreChoice, check_new_password, drive, fmt_time, init_account,
-    join_account,
+    ItemInput, R, Session, StoreChoice, check_new_password, drive, fmt_time, join_account,
 };
 use vault_core::generator;
 use zeroize::Zeroizing;
@@ -114,6 +122,9 @@ enum Cmd {
         /// アプリの画面での「許可」を押したものとして扱う
         #[arg(long)]
         approve: bool,
+        /// 「入力のたびに確認する」設定で処理する
+        #[arg(long)]
+        confirm_each: bool,
     },
     /// アカウントパスワードを変更する
     Passwd,
@@ -153,10 +164,10 @@ impl Prompter {
     }
 
     fn new_password(&self, allow_weak: bool) -> R<SecretString> {
-        let p1 = self.secret("新しいアカウントパスワード: ")?;
-        let p2 = self.secret("もう一度入力: ")?;
+        let p1 = self.secret(&tr("新しいアカウントパスワード: "))?;
+        let p2 = self.secret(&tr("もう一度入力: "))?;
         let score = check_new_password(&p1, &p2, allow_weak)?;
-        println!("✓ 強度: {score}/4");
+        say!("✓ 強度: {score}/4");
         Ok(p1)
     }
 }
@@ -168,7 +179,7 @@ fn print_notices(n: &mut Vec<String>) {
 }
 
 fn unlock(p: &Prompter) -> R<Session> {
-    let pw = p.secret("アカウントパスワード: ")?;
+    let pw = p.secret(&tr("アカウントパスワード: "))?;
     let mut s = Session::unlock(&pw)?;
     print_notices(&mut s.notices);
     Ok(s)
@@ -192,36 +203,36 @@ fn cmd_init(
     allow_weak: bool,
 ) -> R<()> {
     let pw = p.new_password(allow_weak)?;
-    println!("… Secret Key を OS の乱数で生成（128bit）");
-    println!("… Argon2id で鍵を導出し、Vault Key を包みます");
-    let r = init_account(choice(store, drive), &pw, &kit_path)?;
-    println!("  （鍵の導出に {:.2} 秒）", r.kdf_secs);
-    println!("✓ 保管場所: {}", r.location);
-    println!("✓ Secret Key を OS のキーチェーンに保存しました");
-    println!("✓ Emergency Kit を出力しました: {}", kit_path.display());
+    say!("… Secret Key を OS の乱数で生成（128bit）");
+    say!("… Argon2id で鍵を導出し、Vault Key を包みます");
+    let kit = vault_client::i18n::kit_text(vault_client::i18n::lang());
+    let r = vault_client::init_account_with_kit(choice(store, drive), &pw, &kit_path, &kit)?;
+    say!("  （鍵の導出に {:.2} 秒）", r.kdf_secs);
+    say!("✓ 保管場所: {}", r.location);
+    say!("✓ Secret Key を OS のキーチェーンに保存しました");
+    say!("✓ Emergency Kit を出力しました: {}", kit_path.display());
     println!();
     println!("  Secret Key: {}", r.secret_key.as_str());
     println!();
-    println!(
-        "  → Emergency Kit を印刷して施錠できる場所に保管し、HTML ファイルは削除してください。"
-    );
+    say!("  → Emergency Kit を印刷して施錠できる場所に保管し、HTML ファイルは削除してください。");
     Ok(())
 }
 
 fn cmd_join(p: &Prompter, store: Option<PathBuf>, drive: bool) -> R<()> {
-    let sk = p.secret("Secret Key（Emergency Kit に記載）: ")?;
-    let pw = p.secret("アカウントパスワード: ")?;
+    let sk = p.secret(&tr("Secret Key（Emergency Kit に記載）: "))?;
+    let pw = p.secret(&tr("アカウントパスワード: "))?;
     let mut r = join_account(choice(store, drive), &sk, &pw)?;
     print_notices(&mut r.notices);
-    println!(
+    say!(
         "✓ 解除しました（{}、項目 {} 件）。Secret Key をこの端末のキーチェーンに保存しました",
-        r.location, r.items
+        r.location,
+        r.items
     );
     Ok(())
 }
 
 fn print_saved(s: &Session) {
-    println!(
+    say!(
         "✓ 暗号文を保存しました（番号 {}）: {}",
         s.vault.counter,
         s.location()
@@ -241,7 +252,7 @@ fn cmd_add(
     let password = if generate {
         None
     } else {
-        let given = p.secret("保存するパスワード（空なら自動生成）: ")?;
+        let given = p.secret(&tr("保存するパスワード（空なら自動生成）: "))?;
         Some(Zeroizing::new(given.expose_secret().to_string()))
     };
     s.add(ItemInput {
@@ -254,32 +265,35 @@ fn cmd_add(
     })?;
     print_notices(&mut s.notices);
     print_saved(&s);
-    println!("✓ 「{title}」を追加しました");
+    say!("✓ 「{title}」を追加しました");
     Ok(())
 }
 
 fn cmd_import(p: &Prompter, file: PathBuf) -> R<()> {
     let text = Zeroizing::new(std::fs::read_to_string(&file)?);
     let items = vault_client::import::parse(&text)?;
-    println!("… {} 件を読み込みました", items.len());
+    say!("… {} 件を読み込みました", items.len());
     let mut s = unlock(p)?;
     let (added, skipped) = s.import(items)?;
     print_notices(&mut s.notices);
     if added > 0 {
         print_saved(&s);
     }
-    println!("✓ {added} 件を取り込みました（重複で飛ばした項目 {skipped} 件）");
-    println!(
+    say!("✓ {added} 件を取り込みました（重複で飛ばした項目 {skipped} 件）");
+    say!(
         "  → {} には平文のパスワードが入っています。取り込みを確かめたら削除してください。",
         file.display()
     );
     Ok(())
 }
 
-fn cmd_bridge_request(p: &Prompter, json: String, approve: bool) -> R<()> {
+fn cmd_bridge_request(p: &Prompter, json: String, approve: bool, confirm_each: bool) -> R<()> {
     use vault_client::bridge::{Guard, handle};
     let mut s = unlock(p)?;
     let mut guard = Guard::load();
+    if confirm_each {
+        guard.set_confirm_each(true, false)?;
+    }
     let mut out = handle(serde_json::from_str(&json)?, Some(&mut s), &mut guard);
     if approve && out.response["error"] == "needs_approval" {
         guard.resolve(true);
@@ -293,7 +307,7 @@ fn cmd_list(p: &Prompter) -> R<()> {
     let s = unlock(p)?;
     let mut items: Vec<_> = s.vault.items().collect();
     items.sort_by(|a, b| a.title.cmp(&b.title));
-    println!("項目 {} 件（番号 {}）", items.len(), s.vault.counter);
+    say!("項目 {} 件（番号 {}）", items.len(), s.vault.counter);
     for i in items {
         println!(
             "  {}  {:<24} {:<20} {}",
@@ -309,27 +323,30 @@ fn cmd_list(p: &Prompter) -> R<()> {
 fn cmd_show(p: &Prompter, query: String, reveal: bool, copy: bool, clear_after: u64) -> R<()> {
     let s = unlock(p)?;
     let it = s.pick(&query)?;
-    println!("タイトル  : {}", it.title);
-    println!("ユーザー名: {}", it.username);
+    say!("タイトル  : {}", it.title);
+    say!("ユーザー名: {}", it.username);
     println!("URL       : {}", it.urls.join(" "));
+    let hidden = tr("••••••••（--reveal で表示 / --copy でコピー）");
+    // パスワードは訳の処理に通さない（見出しだけを訳す）
     println!(
-        "パスワード: {}",
+        "{}{}",
+        tr("パスワード: "),
         if reveal {
             it.password.as_str()
         } else {
-            "••••••••（--reveal で表示 / --copy でコピー）"
+            &hidden
         }
     );
     if !it.notes.is_empty() {
-        println!("メモ      : {}", it.notes);
+        say!("メモ      : {}", it.notes);
     }
-    println!("更新      : {}", fmt_time(it.updated_at));
+    say!("更新      : {}", fmt_time(it.updated_at));
     if copy {
-        println!(
+        say!(
             "✓ クリップボードにコピーしました。{clear_after} 秒後に消去します（Ctrl+C で中断すると消去されません）"
         );
         if vault_client::copy_and_clear_blocking(&it.password, clear_after)? {
-            println!("✓ クリップボードを消去しました");
+            say!("✓ クリップボードを消去しました");
         }
     }
     Ok(())
@@ -340,7 +357,7 @@ fn cmd_rm(p: &Prompter, query: String) -> R<()> {
     let it = s.pick(&query)?;
     s.delete(&it.id)?;
     print_saved(&s);
-    println!("✓ 「{}」を削除しました", it.title);
+    say!("✓ 「{}」を削除しました", it.title);
     Ok(())
 }
 
@@ -349,17 +366,17 @@ fn cmd_totp(p: &Prompter, query: String, set: bool, clear: bool) -> R<()> {
     let it = s.pick(&query)?;
     if set || clear {
         let value = if set {
-            Some(p.secret("設定キー（または otpauth:// の URL）: ")?)
+            Some(p.secret(&tr("設定キー（または otpauth:// の URL）: "))?)
         } else {
             None
         };
         s.set_totp(&it.id, value.as_ref().map(|v| v.expose_secret()))?;
         print_saved(&s);
-        println!(
-            "✓ 「{}」のワンタイムパスワードを{}",
-            it.title,
-            if set { "登録しました" } else { "外しました" }
-        );
+        if set {
+            say!("✓ 「{}」のワンタイムパスワードを登録しました", it.title);
+        } else {
+            say!("✓ 「{}」のワンタイムパスワードを外しました", it.title);
+        }
         if clear {
             return Ok(());
         }
@@ -369,68 +386,91 @@ fn cmd_totp(p: &Prompter, query: String, set: bool, clear: bool) -> R<()> {
         return Err("この項目には、ワンタイムパスワードが登録されていません".into());
     }
     let c = vault_client::totp::current(&item.totp)?;
-    println!("{}（あと {} 秒）", c.code, c.remaining);
+    say!("{}（あと {} 秒）", c.code, c.remaining);
     Ok(())
 }
 
 fn cmd_passwd(p: &Prompter) -> R<()> {
-    let current = p.secret("現在のアカウントパスワード: ")?;
+    let current = p.secret(&tr("現在のアカウントパスワード: "))?;
     let mut s = Session::unlock(&current)?;
     print_notices(&mut s.notices);
     let pw = p.new_password(false)?;
     s.change_password(&current, &pw)?;
-    println!(
+    say!(
         "✓ アカウントパスワードを変更しました（Vault Key を包み直しただけで、保管庫本体はそのままです）"
     );
-    println!("  他の端末でも次回から新しいパスワードを使います");
+    say!("  他の端末でも次回から新しいパスワードを使います");
     Ok(())
 }
 
 fn cmd_migrate(p: &Prompter) -> R<()> {
     let mut s = unlock(p)?;
     let info = s.migrate_to_drive()?;
-    println!(
+    say!(
         "✓ {} 件を {} に移しました（番号 {}）",
         s.vault.items().count(),
         info.location,
         info.counter
     );
-    println!("  元の同期フォルダのファイルは残っています。動作を確認してから削除してください。");
-    println!("  他の端末では `2pw forget` → `2pw join --drive` で切り替えます。");
+    say!("  元の同期フォルダのファイルは残っています。動作を確認してから削除してください。");
+    say!("  他の端末では `2pw forget` → `2pw join --drive` で切り替えます。");
     Ok(())
 }
 
 fn cmd_status() -> R<()> {
     let st = vault_client::status()?;
-    println!("この端末の設定 : {}", st.home);
-    println!(
+    say!("この端末の設定 : {}", st.home);
+    say!(
         "保管方式       : {}",
         match st.backend {
-            Backend::Drive => "Google Drive API",
-            Backend::Folder => "同期フォルダ",
+            Backend::Drive => "Google Drive API".to_string(),
+            Backend::Folder => tr("同期フォルダ"),
         }
     );
-    println!("保管場所       : {}", st.location);
-    println!("アカウントID   : {}", st.aid);
-    println!("既知の最大番号 : {}", st.known_counter);
+    say!("保管場所       : {}", st.location);
+    say!("アカウントID   : {}", st.aid);
+    say!("既知の最大番号 : {}", st.known_counter);
     println!();
-    println!("── Google Drive（保管場所）から見えるもの ──");
+    say!("── Google Drive（保管場所）から見えるもの ──");
     for (name, size) in &st.files {
         match size {
-            Some(n) => println!("  {name}  {n} バイト"),
-            None => println!("  {name}  （なし）"),
+            Some(n) => say!("  {name}  {n} バイト"),
+            None => say!("  {name}  （なし）"),
         }
     }
     if let (Some(c), Some(hex)) = (st.header_counter, &st.sample_hex) {
-        println!("  保管庫ヘッダ（平文・改ざんは検知）: 番号={c}");
-        println!("  中身の例: {hex}…");
+        say!("  保管庫ヘッダ（平文・改ざんは検知）: 番号={c}");
+        say!("  中身の例: {hex}…");
     }
-    println!("  ※ 項目名・URL・ユーザー名・パスワードはすべて暗号文の中です");
+    say!("  ※ 項目名・URL・ユーザー名・パスワードはすべて暗号文の中です");
     Ok(())
 }
 
+/// コマンドと引数の説明を、表示言語に訳す（原文は上の /// のコメント）
+fn localize(mut c: clap::Command) -> clap::Command {
+    if let Some(about) = c.get_about().map(|a| a.to_string()) {
+        c = c.about(tr(&about));
+    }
+    let ids: Vec<_> = c.get_arguments().map(|a| a.get_id().clone()).collect();
+    for id in ids {
+        c = c.mut_arg(id, |a| match a.get_help().map(|h| h.to_string()) {
+            Some(h) => a.help(tr(&h)),
+            None => a,
+        });
+    }
+    let subs: Vec<String> = c
+        .get_subcommands()
+        .map(|s| s.get_name().to_string())
+        .collect();
+    for name in subs {
+        c = c.mut_subcommand(name, localize);
+    }
+    c
+}
+
 fn run() -> R<()> {
-    let cli = Cli::parse();
+    let matches = localize(Cli::command()).get_matches();
+    let cli = Cli::from_arg_matches(&matches).unwrap_or_else(|e| e.exit());
     let p = Prompter {
         stdin_mode: cli.password_stdin,
     };
@@ -444,12 +484,12 @@ fn run() -> R<()> {
         Cmd::Join { store, drive } => cmd_join(&p, store, drive),
         Cmd::Login => {
             drive::login()?;
-            println!("✓ Google にログインしました（トークンは OS のキーチェーンに保存）");
+            say!("✓ Google にログインしました（トークンは OS のキーチェーンに保存）");
             Ok(())
         }
         Cmd::Logout => {
             drive::logout()?;
-            println!("✓ Google からログアウトしました（トークンを無効化しました）");
+            say!("✓ Google からログアウトしました（トークンを無効化しました）");
             Ok(())
         }
         Cmd::MigrateToDrive => cmd_migrate(&p),
@@ -471,7 +511,11 @@ fn run() -> R<()> {
         Cmd::Rm { query } => cmd_rm(&p, query),
         Cmd::Totp { query, set, clear } => cmd_totp(&p, query, set, clear),
         Cmd::Import { file } => cmd_import(&p, file),
-        Cmd::BridgeRequest { json, approve } => cmd_bridge_request(&p, json, approve),
+        Cmd::BridgeRequest {
+            json,
+            approve,
+            confirm_each,
+        } => cmd_bridge_request(&p, json, approve, confirm_each),
         Cmd::Passwd => cmd_passwd(&p),
         Cmd::Gen { length } => {
             println!("{}", generator::generate(length)?.as_str());
@@ -481,9 +525,7 @@ fn run() -> R<()> {
         Cmd::AttackDemo { wordlist } => attack::run(&p, wordlist),
         Cmd::Forget => {
             vault_client::forget()?;
-            println!(
-                "✓ この端末の設定と Secret Key を消しました（Drive 上の暗号文は残っています）"
-            );
+            say!("✓ この端末の設定と Secret Key を消しました（Drive 上の暗号文は残っています）");
             Ok(())
         }
     }
@@ -491,7 +533,7 @@ fn run() -> R<()> {
 
 fn main() {
     if let Err(e) = run() {
-        eprintln!("エラー: {e}");
+        esay!("エラー: {}", tr(&e.to_string()));
         std::process::exit(1);
     }
 }

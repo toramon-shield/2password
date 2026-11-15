@@ -67,6 +67,8 @@ function expectedCodes() {
       getURL: p => 'chrome-extension://ext/' + p,
       onMessage: { addListener: fn => { listener = fn; } },
       sendNativeMessage: async (_host, req) => {
+        // アプリの画面の代わり：許可するまでは「確認待ち」と答える
+        if (req.type === 'approval') return { ok: true, state: approveNext ? 'allowed' : 'pending' };
         const args = ['bridge-request'];
         if (approveNext && (req.type === 'fill' || req.type === 'totp')) { args.push('--approve'); approveNext = false; }
         const out = cli([...args, JSON.stringify(req)], PW + '\n');
@@ -167,10 +169,8 @@ function expectedCodes() {
   await clickIn('alice');
   await sleep(1200);
   check('初めてのサイトでは、アプリの確認なしに入力しない', (await value('#p')) === '' && (await shown()).includes('アプリで許可'));
-  approveNext = true; // アプリの画面で「許可する」を押したことにする
-  await page.click('#p');
-  await clickIn('alice');
-  check('項目を 1 回選ぶと、ユーザー名とパスワードが入る', (await waitValue('#p')) === 'Site-P@ss-1' && (await value('#u')) === 'alice');
+  approveNext = true; // アプリの画面で「許可する」を押したことにする（選び直さなくても入力する）
+  check('アプリで許可すると、選び直さなくてもユーザー名とパスワードが入る', (await waitValue('#p')) === 'Site-P@ss-1' && (await value('#u')) === 'alice');
   await page.click('#go');
   const code1 = await waitValue('#otp');
   check('続けて出た認証コードの欄に、クリックなしでコードが入る', expectedCodes().includes(code1), code1);

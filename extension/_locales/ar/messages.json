@@ -17,7 +17,34 @@
     "message": "اسمح بذلك في تطبيق 2password"
   },
   "approve_text": {
-    "message": "هذه أول مرة يُستخدم فيها هذا العنصر على هذا الموقع. اسمح بذلك في التطبيق، ثم اختر العنصر مرة أخرى."
+    "message": "بعد السماح في التطبيق، تُملأ هذه الصفحة (لا تُعرض كلمة المرور على الشاشة)."
+  },
+  "denied_title": {
+    "message": "تم الرفض في تطبيق 2password"
+  },
+  "denied_text": {
+    "message": "لم يُملأ شيء في هذه الصفحة."
+  },
+  "approve_expired_title": {
+    "message": "توقف انتظار السماح"
+  },
+  "approve_expired_text": {
+    "message": "لم يتم التأكيد في التطبيق. اختر العنصر مرة أخرى."
+  },
+  "filled_title": {
+    "message": "تم الملء بواسطة 2password"
+  },
+  "filled_text": {
+    "message": "تم ملء اسم المستخدم وكلمة المرور لـ «$1».",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "الملء باستخدام 2password: $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "تسجيل الدخول بمفتاح مرور 2password: $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "تم قفل 2password"
@@ -263,7 +290,7 @@
     "message": "تم قفل 2password لأن طلبات كثيرة وصلت في وقت قصير"
   },
   "err_needs_approval": {
-    "message": "هذه أول مرة على هذا الموقع. اسمح بذلك في تطبيق 2password، ثم اختر مرة أخرى"
+    "message": "يلزم السماح في تطبيق 2password"
   },
   "err_bad_request": {
     "message": "تعذّرت معالجة الطلب"

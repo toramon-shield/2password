@@ -9,6 +9,7 @@ use vault_core::{AccountId, SecretKey};
 
 use crate::Prompter;
 use vault_client::config::{self, Config};
+use vault_client::i18n::tr;
 use vault_client::store::ACCOUNT_FILE;
 use vault_client::{R, read_account};
 
@@ -32,7 +33,7 @@ pub fn run(p: &Prompter, wordlist: Option<PathBuf>) -> R<()> {
     let store = cfg.open_store()?;
     let account = read_account(store.as_ref(), &mut vec![])?;
 
-    println!("━━ 攻撃者が Google Drive から盗めたもの ━━");
+    say!("━━ 攻撃者が Google Drive から盗めたもの ━━");
     println!(
         "  {}: salt={} / Argon2id m={}MiB t={} p={}",
         ACCOUNT_FILE,
@@ -41,33 +42,37 @@ pub fn run(p: &Prompter, wordlist: Option<PathBuf>) -> R<()> {
         account.kdf.t,
         account.kdf.p
     );
-    println!("  保管庫の暗号文（中身は読めない）");
+    say!("  保管庫の暗号文（中身は読めない）");
     println!();
 
     // ── 1. Secret Key なし ──
-    println!("━━ ケース1：Drive のデータだけ（Secret Key を知らない）━━");
-    println!("  たとえ本物のパスワードを当てても、Secret Key が違えば開かないことを確かめます。");
-    let pw = p.secret("  本物のアカウントパスワードを入力（攻撃者が偶然当てたと仮定）: ")?;
+    say!("━━ ケース1：Drive のデータだけ（Secret Key を知らない）━━");
+    say!("  たとえ本物のパスワードを当てても、Secret Key が違えば開かないことを確かめます。");
+    let pw = p.secret(&tr(
+        "  本物のアカウントパスワードを入力（攻撃者が偶然当てたと仮定）: ",
+    ))?;
     let aid = AccountId::parse(&account.aid)?;
     for n in 1..=3 {
         let guess_sk = SecretKey::generate(aid.clone())?;
         let t = Instant::now();
         let r = account.unlock(&pw, &guess_sk);
-        println!(
+        say!(
             "  試行{n}: Secret Key をランダムに推測 → {}（{:.2} 秒）",
-            if r.is_ok() { "開いた！" } else { "失敗" },
+            if r.is_ok() {
+                tr("開いた！")
+            } else {
+                tr("失敗")
+            },
             t.elapsed().as_secs_f64()
         );
     }
     let years = 2f64.powi(128) / 1e12 / 31_557_600.0;
-    println!(
-        "  Secret Key は 2^128 ≒ 3.4×10^38 通り。毎秒1兆回試せても約 {years:.1e} 年かかります。"
-    );
-    println!("  → Drive の流出だけなら、パスワードの総当たりを始めることすらできません。");
+    say!("  Secret Key は 2^128 ≒ 3.4×10^38 通り。毎秒1兆回試せても約 {years:.1e} 年かかります。");
+    say!("  → Drive の流出だけなら、パスワードの総当たりを始めることすらできません。");
     println!();
 
     // ── 2. Secret Key あり（端末ごと盗まれた）──
-    println!("━━ ケース2：端末ごと盗まれ、Secret Key も知られた ━━");
+    say!("━━ ケース2：端末ごと盗まれ、Secret Key も知られた ━━");
     let sk = config::keychain_load(&cfg.aid)?;
     let words: Vec<String> = match &wordlist {
         Some(path) => std::fs::read_to_string(path)?
@@ -77,7 +82,7 @@ pub fn run(p: &Prompter, wordlist: Option<PathBuf>) -> R<()> {
             .collect(),
         None => BUILTIN.iter().map(|s| s.to_string()).collect(),
     };
-    println!(
+    say!(
         "  辞書 {} 語で総当たりします（1回ごとに Argon2id が走ります）",
         words.len()
     );
@@ -89,7 +94,11 @@ pub fn run(p: &Prompter, wordlist: Option<PathBuf>) -> R<()> {
             "  {:>3}: {:<16} {}",
             i + 1,
             w,
-            if ok { "← 一致！" } else { "×" }
+            if ok {
+                tr("← 一致！")
+            } else {
+                "×".to_string()
+            }
         );
         if ok {
             found = Some(w.clone());
@@ -103,17 +112,15 @@ pub fn run(p: &Prompter, wordlist: Option<PathBuf>) -> R<()> {
     let per = start.elapsed().as_secs_f64() / tried as f64;
     println!();
     match found {
-        Some(w) => println!(
+        Some(w) => say!(
             "  ✕ パスワード「{w}」が見つかりました。辞書にある弱いパスワードは、端末を奪われると破られます。"
         ),
-        None => println!("  ✓ 辞書の中にパスワードはありませんでした。"),
+        None => say!("  ✓ 辞書の中にパスワードはありませんでした。"),
     }
-    println!(
+    say!(
         "  このPCでは1回あたり約 {per:.2} 秒（Argon2id のおかげで遅い）。1億語の辞書なら約 {:.0} 日。",
         per * 1e8 / 86400.0
     );
-    println!(
-        "  → 端末の盗難に備えて、アカウントパスワードは長く推測されにくいものにしてください。"
-    );
+    say!("  → 端末の盗難に備えて、アカウントパスワードは長く推測されにくいものにしてください。");
     Ok(())
 }

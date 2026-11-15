@@ -17,7 +17,34 @@
     "message": "โปรดอนุญาตในแอป 2password"
   },
   "approve_text": {
-    "message": "นี่เป็นครั้งแรกที่ใช้รายการนี้บนเว็บไซต์นี้ โปรดอนุญาตในแอป แล้วเลือกรายการอีกครั้ง"
+    "message": "เมื่อคุณอนุญาตในแอปแล้ว 2password จะป้อนข้อมูลในหน้านี้ (รหัสผ่านจะไม่แสดงบนหน้าจอ)"
+  },
+  "denied_title": {
+    "message": "ถูกปฏิเสธในแอป 2password"
+  },
+  "denied_text": {
+    "message": "ไม่ได้ป้อนข้อมูลในหน้านี้"
+  },
+  "approve_expired_title": {
+    "message": "หยุดรอการอนุญาตแล้ว"
+  },
+  "approve_expired_text": {
+    "message": "ไม่ได้รับการยืนยันในแอป โปรดเลือกรายการอีกครั้ง"
+  },
+  "filled_title": {
+    "message": "ป้อนข้อมูลด้วย 2password แล้ว"
+  },
+  "filled_text": {
+    "message": "ป้อนชื่อผู้ใช้และรหัสผ่านของ “$1” แล้ว",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "ป้อนข้อมูลด้วย 2password: $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "ลงชื่อเข้าใช้ด้วยพาสคีย์ของ 2password: $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "ล็อก 2password แล้ว"
@@ -263,7 +290,7 @@
     "message": "ล็อก 2password แล้ว เนื่องจากมีคำขอจำนวนมากในเวลาสั้น ๆ"
   },
   "err_needs_approval": {
-    "message": "นี่เป็นครั้งแรกบนเว็บไซต์นี้ โปรดอนุญาตในแอป 2password แล้วเลือกอีกครั้ง"
+    "message": "ต้องอนุญาตในแอป 2password"
   },
   "err_bad_request": {
     "message": "ไม่สามารถดำเนินการตามคำขอได้"

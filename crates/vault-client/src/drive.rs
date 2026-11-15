@@ -197,11 +197,24 @@ pub fn open_browser(url: &str) {
         std::process::Command::new("xdg-open").arg(url).spawn()
     };
     if r.is_err() {
-        eprintln!("  （ブラウザを自動で開けませんでした。上の URL を手動で開いてください）");
+        eprintln!(
+            "{}",
+            crate::i18n::tr(
+                "  （ブラウザを自動で開けませんでした。上の URL を手動で開いてください）"
+            )
+        );
     }
 }
 
-fn respond(stream: &mut TcpStream, deadline: Instant, status: &str, body: &str) {
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+
+/// ブラウザに出すログインの結果のページ。`body` は日本語の原文で、`lang` の言語に訳して出す
+fn respond(stream: &mut TcpStream, deadline: Instant, status: &str, body: &str, lang: &str) {
     let Some(remaining) = deadline.checked_duration_since(Instant::now()) else {
         return;
     };
@@ -211,8 +224,15 @@ fn respond(stream: &mut TcpStream, deadline: Instant, status: &str, body: &str) 
     {
         return;
     }
+    let dir = if crate::i18n::is_rtl(lang) {
+        "rtl"
+    } else {
+        "ltr"
+    };
+    let body = html_escape(&crate::i18n::tr_in(lang, body));
+    let close = html_escape(&crate::i18n::tr_in(lang, "このタブは閉じて構いません。"));
     let html = format!(
-        "<!doctype html><meta charset=utf-8><title>2password</title><body style=\"font-family:sans-serif;padding:40px\"><h2>{body}</h2><p>このタブは閉じて構いません。</p>"
+        "<!doctype html><html lang=\"{lang}\" dir=\"{dir}\"><meta charset=utf-8><title>2password</title><body style=\"font-family:sans-serif;padding:40px\"><h2>{body}</h2><p>{close}</p>"
     );
     let _ = write!(
         stream,
@@ -221,7 +241,16 @@ fn respond(stream: &mut TcpStream, deadline: Instant, status: &str, body: &str) 
     );
 }
 
+#[cfg(test)]
 fn read_callback_line(stream: &mut TcpStream, login_deadline: Instant) -> io::Result<String> {
+    read_callback_head(stream, login_deadline).map(|(line, _)| line)
+}
+
+/// 要求の 1 行目と、同じ読み込みで届いていた続き（ヘッダーの一部）
+fn read_callback_head(
+    stream: &mut TcpStream,
+    login_deadline: Instant,
+) -> io::Result<(String, Vec<u8>)> {
     let deadline = login_deadline.min(Instant::now() + CALLBACK_READ_TIME);
     let mut line = Vec::new();
     let mut buffer = [0u8; 512];
@@ -254,11 +283,46 @@ fn read_callback_line(stream: &mut TcpStream, login_deadline: Instant) -> io::Re
         }
         line.extend_from_slice(&buffer[..count]);
         if end.is_some() {
-            return String::from_utf8(line).map_err(|_| {
+            let rest = buffer[count..n].to_vec();
+            return String::from_utf8(line).map(|l| (l, rest)).map_err(|_| {
                 io::Error::new(io::ErrorKind::InvalidData, "invalid callback encoding")
             });
         }
     }
+}
+
+/// 結果のページの言語：ブラウザの Accept-Language（読めなければ、このプロセスの言語）。
+/// ヘッダーは短い時間だけ読み、読めなくてもログインの処理には影響させない
+fn page_lang(stream: &mut TcpStream, mut head: Vec<u8>) -> &'static str {
+    let deadline = Instant::now() + Duration::from_millis(300);
+    let mut buffer = [0u8; 1024];
+    while !head.windows(4).any(|w| w == b"\r\n\r\n") && head.len() < MAX_CALLBACK_LINE {
+        let Some(remaining) = deadline
+            .checked_duration_since(Instant::now())
+            .filter(|d| !d.is_zero())
+        else {
+            break;
+        };
+        if stream.set_read_timeout(Some(remaining)).is_err() {
+            break;
+        }
+        match stream.read(&mut buffer) {
+            Ok(0) | Err(_) => break,
+            Ok(n) => head.extend_from_slice(&buffer[..n]),
+        }
+    }
+    accept_language(&String::from_utf8_lossy(&head)).unwrap_or_else(crate::i18n::lang)
+}
+
+fn accept_language(head: &str) -> Option<&'static str> {
+    head.lines().find_map(|l| {
+        let (k, v) = l.split_once(':')?;
+        if k.trim().eq_ignore_ascii_case("accept-language") {
+            crate::i18n::from_accept_language(v)
+        } else {
+            None
+        }
+    })
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -316,7 +380,10 @@ pub fn login() -> R<()> {
         .append_pair("prompt", "consent");
 
     println!(
-        "ブラウザで Google にログインしてください（権限は「このアプリが作ったファイルだけ」です）"
+        "{}",
+        crate::i18n::tr(
+            "ブラウザで Google にログインしてください（権限は「このアプリが作ったファイルだけ」です）"
+        )
     );
     println!("  {url}");
     open_browser(url.as_str());
@@ -340,9 +407,10 @@ pub fn login() -> R<()> {
             Err(e) => return Err(e.into()),
         };
         stream.set_nonblocking(false)?;
-        let callback = read_callback_line(&mut stream, deadline)
-            .ok()
-            .and_then(|line| parse_callback(&line, &state));
+        let (callback, lang) = match read_callback_head(&mut stream, deadline) {
+            Ok((line, rest)) => (parse_callback(&line, &state), page_lang(&mut stream, rest)),
+            Err(_) => (None, crate::i18n::lang()),
+        };
         match callback {
             Some(Callback::Code(code)) => {
                 respond(
@@ -350,6 +418,7 @@ pub fn login() -> R<()> {
                     deadline,
                     "200 OK",
                     "✓ 2password のログインが完了しました",
+                    lang,
                 );
                 break code;
             }
@@ -359,6 +428,7 @@ pub fn login() -> R<()> {
                     deadline,
                     "200 OK",
                     "ログインが取り消されました",
+                    lang,
                 );
                 return Err(format!("Google から拒否されました: {error}").into());
             }
@@ -370,6 +440,7 @@ pub fn login() -> R<()> {
                     deadline,
                     "400 Bad Request",
                     "有効なログイン応答ではありません",
+                    lang,
                 );
             }
         }
@@ -471,7 +542,10 @@ impl DriveStore {
         let rt = match load_refresh_token() {
             Some(t) => t,
             None => {
-                eprintln!("ℹ Google にまだログインしていません。ログインを始めます。");
+                eprintln!(
+                    "{}",
+                    crate::i18n::tr("ℹ Google にまだログインしていません。ログインを始めます。")
+                );
                 login()?;
                 load_refresh_token().ok_or("ログイン後のトークンを読めませんでした")?
             }
@@ -768,6 +842,39 @@ mod tests {
         let mut exact = vec![b'A'; MAX_CALLBACK_LINE];
         exact[MAX_CALLBACK_LINE - 1] = b'\n';
         assert_eq!(read_request(exact).unwrap().len(), MAX_CALLBACK_LINE);
+    }
+
+    #[test]
+    fn result_page_follows_the_browser_language() {
+        assert_eq!(
+            accept_language(
+                "GET / HTTP/1.1\r\nHost: x\r\nAccept-Language: fr-FR,fr;q=0.9,en;q=0.5\r\n\r\n"
+            ),
+            Some("fr")
+        );
+        assert_eq!(
+            accept_language("GET / HTTP/1.1\r\naccept-language: zz\r\n\r\n"),
+            None
+        );
+        assert_eq!(accept_language("GET / HTTP/1.1\r\n\r\n"), None);
+        // 1 行目と同じ読み込みで届いたヘッダーも使う
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let sender = std::thread::spawn(move || {
+            let mut stream = TcpStream::connect(address).unwrap();
+            stream
+                .write_all(b"GET /?code=a&state=s HTTP/1.1\r\nAccept-Language: de-DE\r\n\r\n")
+                .unwrap();
+            std::thread::sleep(Duration::from_millis(400));
+        });
+        let (mut stream, _) = listener.accept().unwrap();
+        let (line, rest) =
+            read_callback_head(&mut stream, Instant::now() + Duration::from_secs(2)).unwrap();
+        assert!(line.starts_with("GET /?code=a"));
+        assert_eq!(page_lang(&mut stream, rest), "de");
+        sender.join().unwrap();
+        let page = crate::i18n::tr_in("de", "このタブは閉じて構いません。");
+        assert!(!page.contains("タブ"), "{page}");
     }
 
     #[test]

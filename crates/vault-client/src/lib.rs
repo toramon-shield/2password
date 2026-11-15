@@ -14,6 +14,7 @@
 pub mod bridge;
 pub mod config;
 pub mod drive;
+pub mod i18n;
 pub mod import;
 pub mod kit;
 pub mod links;

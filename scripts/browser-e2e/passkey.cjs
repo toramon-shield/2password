@@ -50,6 +50,8 @@ const check = (name, ok, extra) => {
       getURL: p => 'chrome-extension://ext/' + p,
       onMessage: { addListener: fn => { listener = fn; } },
       sendNativeMessage: async (_host, req) => {
+        // アプリの画面の代わり：許可するまでは「確認待ち」と答える
+        if (req.type === 'approval') return { ok: true, state: approveNext ? 'allowed' : 'pending' };
         const args = ['bridge-request'];
         if (approveNext) { args.push('--approve'); approveNext = false; }
         const r = cli([...args, JSON.stringify(req)], PW + '\n');
@@ -245,11 +247,10 @@ const check = (name, ok, extra) => {
     const text = await promptText();
     const asked = nativeLog.filter(l => l.req.type === 'passkey_get').pop();
     check('初めてのサイトでは、アプリの確認なしに署名しない', asked.res.includes('needs_approval') && !asked.res.includes('signature') && text.includes('アプリで許可'), text.slice(0, 120));
-    approveNext = true; // アプリの画面で「許可する」を押したことにする
-    await clickIn('alice@example.com');
+    approveNext = true; // アプリの画面で「許可する」を押したことにする（選び直さなくても続きを行う）
     const got = await pending;
     const v = got.ok && await swa.verifyAuthenticationResponse({ response: got.json, expectedChallenge: authOpts4.challenge, expectedOrigin: origin, expectedRPID: rpID, credential: regInfo.credential }).catch(() => null);
-    check('許可したあとは、もう一度選ぶとログインできる', Boolean(v && v.verified), JSON.stringify(got).slice(0, 200));
+    check('アプリで許可すると、選び直さなくてもログインできる', Boolean(v && v.verified), JSON.stringify(got).slice(0, 200));
   }
 
   await browser.close();

@@ -17,7 +17,34 @@
     "message": "Hãy cho phép trong ứng dụng 2password"
   },
   "approve_text": {
-    "message": "Đây là lần đầu mục này được dùng trên trang web này. Hãy cho phép trong ứng dụng, rồi chọn lại mục."
+    "message": "Sau khi bạn cho phép trong ứng dụng, 2password sẽ điền vào trang này (mật khẩu không hiển thị trên màn hình)."
+  },
+  "denied_title": {
+    "message": "Đã bị từ chối trong ứng dụng 2password"
+  },
+  "denied_text": {
+    "message": "Không điền gì vào trang này."
+  },
+  "approve_expired_title": {
+    "message": "Đã ngừng chờ cho phép"
+  },
+  "approve_expired_text": {
+    "message": "Chưa được xác nhận trong ứng dụng. Hãy chọn lại mục."
+  },
+  "filled_title": {
+    "message": "Đã điền bằng 2password"
+  },
+  "filled_text": {
+    "message": "Đã điền tên người dùng và mật khẩu của “$1”.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "Điền bằng 2password: $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "Đăng nhập bằng khóa truy cập 2password: $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "Đã khóa 2password"
@@ -263,7 +290,7 @@
     "message": "Đã khóa 2password vì có nhiều yêu cầu trong thời gian ngắn"
   },
   "err_needs_approval": {
-    "message": "Đây là lần đầu dùng trên trang web này. Hãy cho phép trong ứng dụng 2password, rồi chọn lại"
+    "message": "Cần cho phép trong ứng dụng 2password"
   },
   "err_bad_request": {
     "message": "Không thể xử lý yêu cầu"

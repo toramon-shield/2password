@@ -17,7 +17,34 @@
     "message": "Benarkan dalam aplikasi 2password"
   },
   "approve_text": {
-    "message": "Ini kali pertama item ini digunakan di laman ini. Benarkan dalam aplikasi, kemudian pilih item itu sekali lagi."
+    "message": "Sebaik sahaja anda membenarkannya dalam aplikasi, halaman ini akan diisi (kata laluan tidak sekali-kali dipaparkan pada skrin)."
+  },
+  "denied_title": {
+    "message": "Ditolak dalam aplikasi 2password"
+  },
+  "denied_text": {
+    "message": "Tiada apa-apa diisi pada halaman ini."
+  },
+  "approve_expired_title": {
+    "message": "Berhenti menunggu kebenaran"
+  },
+  "approve_expired_text": {
+    "message": "Tidak disahkan dalam aplikasi. Pilih item itu sekali lagi."
+  },
+  "filled_title": {
+    "message": "Diisi oleh 2password"
+  },
+  "filled_text": {
+    "message": "Nama pengguna dan kata laluan untuk “$1” telah diisi.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "Isi dengan 2password: $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "Log masuk dengan kunci laluan 2password: $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "2password kini dikunci"
@@ -263,7 +290,7 @@
     "message": "2password telah dikunci kerana banyak permintaan diterima dalam masa yang singkat"
   },
   "err_needs_approval": {
-    "message": "Ini kali pertama di laman ini. Benarkan dalam aplikasi 2password, kemudian pilih sekali lagi"
+    "message": "Kebenaran diperlukan dalam aplikasi 2password"
   },
   "err_bad_request": {
     "message": "Permintaan tidak dapat diproses"

@@ -17,7 +17,34 @@
     "message": "Autorisez-le dans l'application 2password"
   },
   "approve_text": {
-    "message": "C'est la première fois que cet élément est utilisé sur ce site. Autorisez-le dans l'application, puis choisissez de nouveau l'élément."
+    "message": "Dès que vous l'autorisez dans l'application, 2password remplit cette page (le mot de passe n'est jamais affiché à l'écran)."
+  },
+  "denied_title": {
+    "message": "Refusé dans l'application 2password"
+  },
+  "denied_text": {
+    "message": "Rien n'a été rempli sur cette page."
+  },
+  "approve_expired_title": {
+    "message": "Fin de l'attente de l'autorisation"
+  },
+  "approve_expired_text": {
+    "message": "Rien n'a été confirmé dans l'application. Choisissez à nouveau l'élément."
+  },
+  "filled_title": {
+    "message": "Rempli par 2password"
+  },
+  "filled_text": {
+    "message": "Nom d'utilisateur et mot de passe de « $1 » remplis.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "Remplir avec 2password : $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "Se connecter avec une clé d'accès 2password : $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "2password a été verrouillé"
@@ -263,7 +290,7 @@
     "message": "2password a été verrouillé, car de nombreuses requêtes sont arrivées en peu de temps"
   },
   "err_needs_approval": {
-    "message": "C'est la première utilisation sur ce site. Autorisez-la dans l'application 2password, puis choisissez de nouveau"
+    "message": "Autorisation nécessaire dans l'application 2password"
   },
   "err_bad_request": {
     "message": "La requête n'a pas pu être traitée"

@@ -4,13 +4,14 @@
 使い方:
     python scripts/i18n.py check            # すべての言語の翻訳ファイルを検査する
     python scripts/i18n.py check fr de      # 指定した言語だけを検査する
-    python scripts/i18n.py rust             # 画面に出る Rust のメッセージを一覧する
+    python scripts/i18n.py rust             # 画面とコマンドラインに出る Rust のメッセージを一覧する
     python scripts/i18n.py sync-rust        # ja.json の rust 節を、いまの Rust のソースに合わせる
 
 翻訳ファイル:
     app/ui/locales/<言語>.json              デスクトップアプリの画面
         "ui":   キー → 文言。{name} は差し込む値
-        "rust": Rust が返す日本語のメッセージ（原文）→ 訳。{} は差し込む値
+        "rust": Rust が返す日本語のメッセージ（原文）→ 訳。{} は差し込む値。
+                コマンドライン（2pw）と、Google ログインの完了ページも同じ訳を使う
     extension/_locales/<言語>/messages.json ブラウザ拡張（Chrome の形式。$1 は差し込む値）
 
 ja.json と extension/_locales/ja が原本。ほかの言語は、原本と同じキーと差し込み口を持つこと。
@@ -31,11 +32,15 @@ LANGS = {
     "de": ["de"], "hi": ["hi"], "ar": ["ar"], "tr": ["tr"],
 }
 
-# 画面に出る Rust のメッセージを探すファイル（テストとコメントは除く）
+# 画面とコマンドラインに出る Rust のメッセージを探すファイル（テストとコメントは除く）
 RUST_FILES = sorted((ROOT / "crates" / "vault-client" / "src").glob("*.rs")) + [
     ROOT / "crates" / "vault-core" / "src" / "error.rs",
     ROOT / "app" / "src-tauri" / "src" / "main.rs",
+    ROOT / "crates" / "vault-cli" / "src" / "main.rs",
+    ROOT / "crates" / "vault-cli" / "src" / "attack.rs",
 ]
+# コマンドの説明（clap は /// のコメントを --help に出す）。この印より前の /// を集める
+CLI_HELP = (ROOT / "crates" / "vault-cli" / "src" / "main.rs", "// ---------------- 入力")
 # ブラウザ拡張にだけ返すもの（拡張は error のコードで訳す）と、ファイルの中身を作るもの
 RUST_SKIP = {"bridge.rs", "kit.rs"}
 # メッセージではない文字列（CSV の列名、フォルダ名、ブラウザに出す HTML の枠）
@@ -60,7 +65,14 @@ def rust_messages() -> list[str]:
     for f in RUST_FILES:
         if f.name in RUST_SKIP:
             continue
-        src = f.read_text(encoding="utf-8").split("#[cfg(test)]")[0]
+        src = re.split(r"#\[cfg\(test\)\]\s*mod ", f.read_text(encoding="utf-8"))[0]
+        if f == CLI_HELP[0]:
+            for line in src.split(CLI_HELP[1])[0].splitlines():
+                doc = line.strip()
+                if doc.startswith("///"):
+                    text = doc[3:].strip()
+                    if JA.search(text) and text not in out:
+                        out.append(text)
         for line in src.splitlines():
             if line.strip().startswith("//"):
                 continue
@@ -107,6 +119,10 @@ def check(only: list[str] | None = None) -> int:
                     continue
                 if CONTROL.search(v):
                     errors.append(f"{lang}.json: 制御文字が入っている: {k!r}")
+                # コマンドラインの見出し（「パスワード: 」など）は、前後の空白で揃えている
+                if section == "rust" and (src[:len(src) - len(src.lstrip())] != v[:len(v) - len(v.lstrip())]
+                                          or src[len(src.rstrip()):] != v[len(v.rstrip()):]):
+                    errors.append(f"{lang}.json: 前後の空白が原文と違う: {k!r}: {v!r}")
                 if sorted(slot.findall(src)) != sorted(slot.findall(v)) and section == "ui":
                     errors.append(f"{lang}.json: 差し込み口が違う: {k!r}: {v!r}")
                 if section == "rust" and len(slot.findall(src)) != len(slot.findall(v)):

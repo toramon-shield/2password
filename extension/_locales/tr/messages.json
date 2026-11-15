@@ -17,7 +17,34 @@
     "message": "2password uygulamasında izin verin"
   },
   "approve_text": {
-    "message": "Bu öğe bu sitede ilk kez kullanılıyor. Uygulamada izin verin, ardından öğeyi yeniden seçin."
+    "message": "Uygulamada izin verdiğinizde 2password bu sayfayı doldurur (parola ekranda asla gösterilmez)."
+  },
+  "denied_title": {
+    "message": "2password uygulamasında reddedildi"
+  },
+  "denied_text": {
+    "message": "Bu sayfada hiçbir şey doldurulmadı."
+  },
+  "approve_expired_title": {
+    "message": "İzin beklemesi sonlandırıldı"
+  },
+  "approve_expired_text": {
+    "message": "Uygulamada onaylanmadı. Öğeyi yeniden seçin."
+  },
+  "filled_title": {
+    "message": "2password ile dolduruldu"
+  },
+  "filled_text": {
+    "message": "“$1” için kullanıcı adı ve parola dolduruldu.",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "2password ile doldur: $1 ($2)",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "2password geçiş anahtarıyla giriş yap: $1 ($2)",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "2password kilitlendi"
@@ -263,7 +290,7 @@
     "message": "Kısa sürede çok sayıda istek geldiği için 2password kilitlendi"
   },
   "err_needs_approval": {
-    "message": "Bu sitede ilk kullanım. 2password uygulamasında izin verin, ardından yeniden seçin"
+    "message": "2password uygulamasında izin gerekiyor"
   },
   "err_bad_request": {
     "message": "İstek işlenemedi"

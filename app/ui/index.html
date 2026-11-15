@@ -166,7 +166,7 @@
 <dialog id="d-approve">
   <form method="dialog">
     <h2 id="ap-what"></h2>
-    <p class="muted small" data-i18n="approve.lead"></p>
+    <p class="muted small" id="ap-lead"></p>
     <p class="approve-host" id="ap-host" dir="ltr"></p>
     <dl class="kv">
       <dt data-i18n="approve.item"></dt><dd id="ap-title"></dd>
@@ -175,7 +175,7 @@
     <p class="small" data-i18n="approve.question"></p>
     <div class="actions">
       <button value="no" class="secondary" data-i18n="approve.deny"></button>
-      <button value="yes" class="primary" data-i18n="approve.allow"></button>
+      <button value="yes" class="primary" id="ap-allow"></button>
     </div>
   </form>
 </dialog>
@@ -222,6 +222,8 @@
       <p class="muted small" id="br-ids"></p>
     </details>
     <p class="muted small" data-i18n="settings.browser_guard"></p>
+    <label class="check"><input type="checkbox" id="br-each"> <span data-i18n="settings.browser_each"></span></label>
+    <p class="muted small" data-i18n="settings.browser_each_note"></p>
     <details class="small">
       <summary data-i18n="settings.browser_log"></summary>
       <ul class="log" id="br-log"></ul>

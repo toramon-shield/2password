@@ -2,6 +2,10 @@
 # 2台の端末をフォルダで模擬して、2pw の一連の動作を確かめる。
 # 使い方: scripts/e2e.sh [作業フォルダ]   ※実際の Google Drive には触れない
 set -u
+# 出力の文言で確かめるので、表示言語は日本語に固定する（言語ごとの表示は最後に確かめる）
+export TWOPW_LANG=ja
+# 標準入力に、ひらがな・カタカナが含まれていないこと（grep の範囲指定はロケールで変わるので Python で見る）
+nokana() { python -I -c "import re,sys;sys.exit(1 if re.search('[぀-ヿ]',sys.stdin.buffer.read().decode('utf-8','replace')) else 0)"; }
 WORK="${1:-$(mktemp -d)}"
 rm -rf "$WORK" && mkdir -p "$WORK"
 BIN="${BIN:-./target/release/2pw}"
@@ -87,6 +91,9 @@ FILL="{\"type\":\"fill\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\"}"
 check "拡張：初めてのサイトでは、アプリでの確認なしにパスワードを返さない" 'O=$(br "$FILL"); echo "$O" | grep -q "needs_approval" && ! echo "$O" | grep -q "P@ss"'
 check "拡張：アプリで許可するとパスワードを返す" 'printf "%s\n" "$PW2" | A bridge-request --approve "$FILL" | grep -q "\"username\":\"carol\""'
 check "拡張：許可済みのサイトには次回から確認なしで返す" 'br "$FILL" | grep -q "\"username\":\"carol\""'
+check "拡張：入力のたびに確認する設定では、許可済みのサイトでも確認する" 'O=$(printf "%s\n" "$PW2" | A bridge-request --confirm-each "$FILL"); echo "$O" | grep -q "needs_approval" && ! echo "$O" | grep -q "P@ss"'
+check "拡張：入力のたびに確認する設定でも、許可すれば返す" 'printf "%s\n" "$PW2" | A bridge-request --confirm-each --approve "$FILL" | grep -q "\"username\":\"carol\""'
+check "拡張：待っている確認の状態だけを返す（パスワードは含めない）" 'O=$(br "{\"type\":\"approval\",\"origin\":\"https://shop.example\",\"id\":\"$SHOP\"}"); echo "$O" | grep -q "\"state\":\"allowed\"" && ! echo "$O" | grep -q "P@ss"'
 check "拡張：許可の記録にサイト名を平文で残さない" '[ -f "$WORK/devA/approved-sites.json" ] && ! grep -q "shop" "$WORK/devA/approved-sites.json"'
 check "拡張：同じドメインでも別のホストにはパスワードを返さない" 'br "{\"type\":\"fill\",\"origin\":\"https://blog.shop.example\",\"id\":\"$SHOP\"}" | grep -q "no_match"'
 check "拡張：同じドメインの別ホストでは、候補を出さずに知らせる" 'O=$(br "{\"type\":\"list\",\"origin\":\"https://blog.shop.example\"}"); echo "$O" | grep -q "\"items\":\[\]" && echo "$O" | grep -q "same_site"'
@@ -134,6 +141,13 @@ check "2FA：1Password 形式の CSV から設定を取り込める" 'printf "%s
 printf '%s\n' "$PW2" | A totp Mail2FA --clear > /dev/null
 check "2FA：登録を外すとコードは出ない" '! (printf "%s\n" "$PW2" | A totp Mail2FA > /dev/null 2>&1)'
 check "2FA：保存先のファイルに設定キーが平文で現れない" '! grep -r -q -a -i -E "JBSWY3DP|otpauth" "$WORK/drive"'
+
+# 表示言語：コマンドラインの表示と --help は、環境変数（TWOPW_LANG・LANG）か OS の言語に合わせる
+check "言語：英語の表示" 'printf "%s\n" "$PW2" | TWOPW_LANG=en A list | grep -q -E "^[0-9]+ items"'
+check "言語：エラーも訳す" 'O=$(printf "wrong\n" | TWOPW_LANG=en A list 2>&1); echo "$O" | grep -q "^Error: " && echo "$O" | nokana'
+check "言語：--help の説明を訳す" 'O=$(TWOPW_LANG=de "$BIN" --help); echo "$O" | grep -q "Passwort" && echo "$O" | nokana'
+check "言語：LANG からも選ぶ" 'O=$(env -u TWOPW_LANG LANG=fr_FR.UTF-8 "$BIN" totp --help); echo "$O" | grep -q "usage unique" && echo "$O" | nokana'
+check "言語：対応していない言語は英語" 'O=$(TWOPW_LANG=sv "$BIN" --help); echo "$O" | grep -q "keeps only ciphertext" && echo "$O" | nokana'
 
 A forget > /dev/null; Bd forget > /dev/null
 echo "結果: 成功 $pass / 失敗 $fail"

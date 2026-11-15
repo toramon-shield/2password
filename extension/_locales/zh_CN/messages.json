@@ -17,7 +17,34 @@
     "message": "请在 2password 应用中允许"
   },
   "approve_text": {
-    "message": "这是首次在此网站上使用。请在应用中允许后，再次选择条目。"
+    "message": "在应用中允许后，将在此页面上填充（密码不会显示在屏幕上）。"
+  },
+  "denied_title": {
+    "message": "已在 2password 应用中被拒绝"
+  },
+  "denied_text": {
+    "message": "未在此页面上填充。"
+  },
+  "approve_expired_title": {
+    "message": "已停止等待允许"
+  },
+  "approve_expired_text": {
+    "message": "未能在应用中确认。请再次选择条目。"
+  },
+  "filled_title": {
+    "message": "已使用 2password 填充"
+  },
+  "filled_text": {
+    "message": "已填充“$1”的用户名和密码。",
+    "description": "$1 = 項目のタイトル"
+  },
+  "aria_fill": {
+    "message": "使用 2password 填充：$1（$2）",
+    "description": "読み上げ・AI エージェント向けの候補の名前。$1 = 項目のタイトル、$2 = ユーザー名"
+  },
+  "aria_passkey": {
+    "message": "使用 2password 通行密钥登录：$1（$2）",
+    "description": "$1 = 項目のタイトル、$2 = ユーザー名"
   },
   "rate_limited_title": {
     "message": "已锁定 2password"
@@ -263,7 +290,7 @@
     "message": "短时间内连续收到请求，因此已锁定 2password"
   },
   "err_needs_approval": {
-    "message": "这是首次在此网站上使用。请在 2password 应用中允许后，再次选择"
+    "message": "需要在 2password 应用中允许"
   },
   "err_bad_request": {
     "message": "无法处理此请求"

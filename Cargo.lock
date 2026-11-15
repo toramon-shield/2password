@@ -4465,6 +4465,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "sys-locale"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "system-deps"
 version = "6.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5110,7 +5119,7 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "twopassword-app"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "secrecy",
  "serde",
@@ -5248,7 +5257,7 @@ dependencies = [
 
 [[package]]
 name = "vault-cli"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "clap",
  "rpassword",
@@ -5262,7 +5271,7 @@ dependencies = [
 
 [[package]]
 name = "vault-client"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "arboard",
  "base64 0.23.1",
@@ -5274,6 +5283,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.1",
+ "sys-locale",
  "tempfile",
  "uuid",
  "vault-core",
@@ -5283,7 +5293,7 @@ dependencies = [
 
 [[package]]
 name = "vault-core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "argon2",
  "base64 0.23.1",

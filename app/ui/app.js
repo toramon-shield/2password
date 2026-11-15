@@ -474,6 +474,7 @@ async function refreshBrowser() {
     ids: I18N.list([t('settings.browser_dev', { id: b.dev_extension_id }), ...b.extra_extension_ids]),
   });
   $('#br-approved').textContent = t('settings.browser_approved', { n: b.approved_sites });
+  $('#br-each').checked = b.confirm_each;
   const log = await invoke('browser_log');
   $('#br-log').replaceChildren(...(log.length ? log : [null]).map(e => {
     const li = document.createElement('li');
@@ -489,7 +490,14 @@ $('#b-browser-forget').addEventListener('click', async () => {
   refreshBrowser();
 });
 
-// 拡張機能が、項目をそのサイトで初めて使おうとしたときの確認
+// 入力のたびに確認する（AI エージェントにブラウザを操作させるとき向け）
+$('#br-each').addEventListener('change', async e => {
+  const on = e.target.checked;
+  try { await invoke('browser_set_confirm_each', { on }); toast(t(on ? 'settings.browser_each_on' : 'settings.browser_each_off')); }
+  catch (err) { e.target.checked = !on; fail(err); }
+});
+
+// 拡張機能が、項目をそのサイトで初めて使おうとしたとき（または入力のたび）の確認
 let approving = null; // 画面に出している確認
 async function askApproval() {
   const d = $('#d-approve');
@@ -497,6 +505,8 @@ async function askApproval() {
   if (!p || $('#v-main').hidden) return;
   approving = p;
   $('#ap-what').textContent = p.passkey ? t('approve.passkey') : t('approve.password');
+  $('#ap-lead').textContent = t(p.each ? 'approve.lead_each' : 'approve.lead');
+  $('#ap-allow').textContent = t(p.each ? 'approve.allow_once' : 'approve.allow');
   $('#ap-host').textContent = p.host;
   $('#ap-title').textContent = p.title;
   $('#ap-user').textContent = p.username || t('approve.none');
