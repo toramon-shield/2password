@@ -167,7 +167,7 @@ def sync_rust() -> None:
     data = load(path)
     msgs = rust_messages()
     data["rust"] = {m: m for m in msgs}
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"ja.json の rust 節を {len(msgs)} 件にしました")
 
 
