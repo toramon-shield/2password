@@ -3024,6 +3024,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "objc2-local-authentication"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e48e0b8b339e0d9d2ed4416b7f93f9d4daadff7d4dd797f89867cde11aeac607"
+dependencies = [
+ "block2",
+ "objc2",
+ "objc2-foundation",
+]
+
+[[package]]
 name = "objc2-quartz-core"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4659,6 +4670,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-single-instance"
+version = "2.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "726b6da0dd5bd1344f84f4108a622c07d01923baacb5c803a605189672c5352f"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tauri",
+ "thiserror 2.0.21",
+ "tokio",
+ "tracing",
+ "windows-sys 0.61.2",
+ "zbus",
+]
+
+[[package]]
 name = "tauri-runtime"
 version = "2.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5119,13 +5146,14 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "twopassword-app"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "secrecy",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri-plugin-single-instance",
  "vault-client",
  "vault-core",
  "zeroize",
@@ -5257,7 +5285,7 @@ dependencies = [
 
 [[package]]
 name = "vault-cli"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "clap",
  "rpassword",
@@ -5271,7 +5299,7 @@ dependencies = [
 
 [[package]]
 name = "vault-client"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "arboard",
  "base64 0.23.1",
@@ -5287,13 +5315,14 @@ dependencies = [
  "tempfile",
  "uuid",
  "vault-core",
+ "vault-os-auth",
  "zeroize",
  "zxcvbn",
 ]
 
 [[package]]
 name = "vault-core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "argon2",
  "base64 0.23.1",
@@ -5309,6 +5338,23 @@ dependencies = [
  "thiserror 2.0.21",
  "unicode-normalization",
  "uuid",
+ "zeroize",
+]
+
+[[package]]
+name = "vault-os-auth"
+version = "0.7.0"
+dependencies = [
+ "block2",
+ "getrandom 0.4.3",
+ "keyring",
+ "objc2",
+ "objc2-foundation",
+ "objc2-local-authentication",
+ "sha2 0.11.1",
+ "windows",
+ "windows-core",
+ "windows-future",
  "zeroize",
 ]
 

@@ -1191,6 +1191,15 @@ pub fn install_native_host() -> R<Vec<String>> {
     Ok(done)
 }
 
+/// 以前に「ブラウザと接続する」を行っていて、登録がいまのアプリと合わなくなっていたら
+/// （アプリの更新・移動のあと）、登録し直す。登録し直したら、そのブラウザの名前を返す。
+pub fn ensure_native_host() -> R<Option<Vec<String>>> {
+    if !manifest_path().is_file() || native_host_installed() {
+        return Ok(None);
+    }
+    install_native_host().map(Some)
+}
+
 /// ブラウザへの登録を消す
 pub fn uninstall_native_host() -> R<()> {
     #[cfg(windows)]

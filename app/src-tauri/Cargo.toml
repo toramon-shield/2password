@@ -15,7 +15,8 @@ tauri-build = { version = "2.7.4", features = [] }
 [dependencies]
 vault-core = { path = "../../crates/vault-core" }
 vault-client = { path = "../../crates/vault-client" }
-tauri = { version = "2.12.5", features = [] }
+tauri = { version = "2.12.5", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2.5.5"
 serde = { workspace = true }
 serde_json = { workspace = true }
 secrecy = { workspace = true }

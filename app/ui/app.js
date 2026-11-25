@@ -76,6 +76,18 @@ async function boot() {
   $('#lock-where').textContent = info.backend === 'drive'
     ? t('lock.where_drive')
     : t('lock.where_folder', { location: info.location || '' });
+  showLock();
+}
+
+/** Windows Hello / Touch ID の名前 */
+const osName = () => t(info && info.os_method === 'touch-id' ? 'os.touch_id' : 'os.windows_hello');
+
+/** ロック画面を出す（Windows Hello / Touch ID で解除できるならボタンも出す） */
+function showLock() {
+  const b = $('#b-os-unlock');
+  b.hidden = !(info && info.os_unlock);
+  b.textContent = t('lock.os_unlock', { method: osName() });
+  b.disabled = false;
   show('lock');
 }
 
@@ -165,6 +177,36 @@ fj.addEventListener('submit', async e => {
 });
 
 // ---------- ロック ----------
+$('#b-os-unlock').addEventListener('click', async () => {
+  const b = $('#b-os-unlock');
+  $('.error', fu).textContent = '';
+  b.disabled = true;
+  try {
+    const notices = await invoke('unlock_with_os');
+    notices.forEach(n => toast(tr(n)));
+    clearSecrets(fu);
+    enterMain();
+  } catch (err) {
+    $('.error', fu).textContent = tr(err);
+    info = await invoke('app_info');
+    b.hidden = !info.os_unlock;
+  } finally { b.disabled = false; }
+});
+// 画面の外（起動時・ブラウザ拡張から）で本人確認が始まった／終わった
+listen('os-unlock', () => { if (!$('#v-lock').hidden) $('#b-os-unlock').disabled = true; });
+listen('unlocked', ev => {
+  (ev.payload || []).forEach(n => toast(tr(n)));
+  clearSecrets(fu);
+  if ($('#v-main').hidden) enterMain();
+});
+listen('os-unlock-failed', async ev => {
+  info = await invoke('app_info');
+  if (!$('#v-lock').hidden) {
+    $('#b-os-unlock').disabled = false;
+    $('#b-os-unlock').hidden = !info.os_unlock;
+    $('.error', fu).textContent = tr(ev.payload);
+  }
+});
 const fu = $('#f-unlock');
 fu.addEventListener('submit', async e => {
   e.preventDefault();
@@ -185,6 +227,7 @@ async function lockNow(reason) {
   await invoke('lock');
   // 画面に残った平文（一覧・詳細・入力途中のフォーム・Secret Key 表示）を消す
   items = []; selected = null; editingId = null;
+  clearInterval(totpTimer);
   $('#detail').replaceChildren();
   $('#list').replaceChildren();
   $('#q').value = '';
@@ -194,7 +237,7 @@ async function lockNow(reason) {
   $$('input[type=text][name=password]').forEach(i => (i.type = 'password'));
   info = await invoke('app_info');
   $('#lock-where').textContent = reason === 'auto' ? t('lock.auto') : reason === 'browser' ? t('lock.browser') : '';
-  show('lock');
+  showLock();
 }
 $('#b-lock').addEventListener('click', () => lockNow('manual'));
 listen('locked', ev => lockNow(ev.payload));
@@ -210,33 +253,107 @@ async function enterMain() {
 
 async function refreshList() {
   items = await invoke('list_items');
+  if (selected && !items.some(i => i.id === selected)) selected = null;
   renderList();
-  if (selected && items.some(i => i.id === selected)) selectItem(selected);
-  else { selected = null; renderEmpty(); }
+  if (selected) selectItem(selected);
+  else if (filter !== 'passkey') renderEmpty();
 }
 
-function renderList() {
+let filter = 'all'; // 'all' | 'passkey'
+function visibleItems() {
   const q = $('#q').value.trim().toLowerCase();
+  return items.filter(i => (filter !== 'passkey' || i.passkey)
+    && (!q || [i.title, i.username, ...i.urls, i.passkey ? i.passkey.rp_id : '', i.passkey ? i.passkey.user_name : '']
+      .some(s => s.toLowerCase().includes(q))));
+}
+function renderList() {
   const list = $('#list');
   list.replaceChildren();
-  const shown = items.filter(i => !q || [i.title, i.username, ...i.urls].some(s => s.toLowerCase().includes(q)));
+  const shown = visibleItems();
   if (!shown.length) {
     const d = document.createElement('div');
     d.className = 'none';
-    d.textContent = items.length ? t('main.no_match') : t('main.no_items');
+    d.textContent = filter === 'passkey' && !items.some(i => i.passkey) ? t('passkeys.none')
+      : items.length ? t('main.no_match') : t('main.no_items');
     list.append(d);
   }
   for (const i of shown) {
     const b = document.createElement('button');
     b.className = i.id === selected ? 'sel' : '';
     const ti = document.createElement('b'); ti.textContent = (i.has_passkey ? '🔑 ' : '') + i.title;
-    const s = document.createElement('span'); s.textContent = i.username || i.urls[0] || '';
+    const s = document.createElement('span');
+    s.textContent = filter === 'passkey' && i.passkey
+      ? [i.passkey.rp_id, i.passkey.user_name].filter(Boolean).join(' · ')
+      : i.username || i.urls[0] || '';
     b.append(ti, s);
     b.addEventListener('click', () => selectItem(i.id));
     list.append(b);
   }
+  if (filter === 'passkey' && !selected) renderPasskeys();
 }
 $('#q').addEventListener('input', renderList);
+$$('.seg [data-filter]').forEach(b => b.addEventListener('click', () => {
+  filter = b.dataset.filter;
+  $$('.seg [data-filter]').forEach(x => x.classList.toggle('on', x === b));
+  selected = null;
+  renderList();
+  if (filter !== 'passkey') renderEmpty();
+}));
+
+/** パスキーの一覧（パスキーで絞り込んだときの右側） */
+function renderPasskeys() {
+  clearInterval(totpTimer);
+  const d = $('#detail');
+  d.replaceChildren();
+  const h = document.createElement('h1'); h.textContent = t('passkeys.title');
+  const lead = document.createElement('p'); lead.className = 'muted small'; lead.textContent = t('passkeys.lead');
+  d.append(h, lead);
+  const rows = visibleItems().filter(i => i.passkey);
+  if (!rows.length) {
+    const p = document.createElement('p'); p.className = 'muted'; p.textContent = t('passkeys.none_help');
+    return d.append(p);
+  }
+  const table = document.createElement('table'); table.className = 'pk-table';
+  const head = document.createElement('tr');
+  for (const k of ['passkeys.site', 'field.username', 'passkeys.item', 'passkeys.created', '']) {
+    const th = document.createElement('th'); th.textContent = k ? t(k) : ''; head.append(th);
+  }
+  table.append(head);
+  for (const i of rows) {
+    const tr_ = document.createElement('tr');
+    const site = document.createElement('td');
+    const a = document.createElement('a'); a.textContent = i.passkey.rp_id; a.dir = 'ltr';
+    a.addEventListener('click', () => invoke('open_url', { url: 'https://' + i.passkey.rp_id }).catch(fail));
+    site.append(a);
+    const user = document.createElement('td'); user.textContent = i.passkey.user_name || t('detail.no_username');
+    const item = document.createElement('td'); item.textContent = i.title;
+    const created = document.createElement('td'); created.textContent = i.passkey.created;
+    const act = document.createElement('td'); act.className = 'act';
+    act.append(
+      btn(t('passkeys.open'), 'secondary', () => selectItem(i.id)),
+      btn(t('btn.remove'), 'danger', () => removePasskey(i.id, i.title, !i.username && !i.urls.length)));
+    tr_.append(site, user, item, created, act);
+    table.append(tr_);
+  }
+  d.append(table);
+}
+
+/** パスキーを外す。パスキーしか入っていない項目なら、項目ごと消すかを選べる */
+async function removePasskey(id, title, onlyPasskey) {
+  let it;
+  try { it = await invoke('get_item', { id }); } catch (e) { return fail(e); }
+  const empty = !it.password_len && !it.has_totp && !it.notes;
+  if (!await confirmBox(t('passkey.remove_title'),
+    t(empty ? 'passkey.remove_body_item' : 'passkey.remove_body', { title }),
+    t(empty ? 'btn.delete' : 'btn.remove'))) return;
+  try {
+    if (empty) { await invoke('delete_item', { id }); toast(t('delete.done')); selected = null; }
+    else { await invoke('remove_passkey', { id }); toast(t('passkey.removed')); }
+    await refreshList();
+    if (filter === 'passkey' && !selected) renderPasskeys();
+    else if (selected) selectItem(selected);
+  } catch (e) { fail(e); }
+}
 
 function renderEmpty() {
   const d = document.createElement('div');
@@ -316,12 +433,13 @@ async function selectItem(id) {
   }
   if (it.passkey) {
     const who = it.passkey.user_name || t('detail.no_username');
-    d.append(field(t('field.passkey'), span(t('detail.passkey', { rp: it.passkey.rp_id, user: who, created: it.passkey.created })),
-      btn(t('btn.remove'), 'secondary', async () => {
-        if (!await confirmBox(t('passkey.remove_title'), t('passkey.remove_body', { title: it.title }), t('btn.remove'))) return;
-        try { await invoke('remove_passkey', { id }); toast(t('passkey.removed')); await refreshList(); selectItem(id); }
-        catch (e) { fail(e); }
-      })));
+    const info_ = span(t('detail.passkey', { rp: it.passkey.rp_id, user: who, created: it.passkey.created }));
+    const sub = document.createElement('div'); sub.className = 'muted small'; sub.dir = 'ltr';
+    sub.textContent = [it.passkey.user_display_name, 'ID ' + it.passkey.credential_short + '…'].filter(Boolean).join(' · ');
+    info_.append(sub);
+    d.append(field(t('field.passkey'), info_,
+      btn(t('passkeys.site_open'), 'secondary', () => invoke('open_url', { url: 'https://' + it.passkey.rp_id }).catch(fail)),
+      btn(t('btn.remove'), 'secondary', () => removePasskey(id, it.title))));
   }
   for (const u of it.urls) {
     const a = document.createElement('a'); a.textContent = u; a.dir = 'ltr';
@@ -431,8 +549,73 @@ async function openSettings() {
     $('#b-google-login').disabled = !s.oauth_ready;
   } catch (e) { kv.replaceChildren(); fail(e); }
   $('#st-version').textContent = '2password ' + info.version;
+  refreshUnlockSettings();
   refreshBrowser();
 }
+
+// ---------- Windows Hello / Touch ID・自動起動 ----------
+async function refreshUnlockSettings() {
+  const o = await invoke('os_unlock_status');
+  const name = t(o.method === 'touch-id' ? 'os.touch_id' : 'os.windows_hello');
+  $('#os-on-label').textContent = t('settings.os_on', { method: name });
+  $('#os-at-start-label').textContent = t('settings.os_at_start', { method: name });
+  $('#os-note').textContent = o.available || o.enabled ? t('settings.os_note', { method: name })
+    : t(o.method === 'none' ? 'settings.os_unsupported' : 'settings.os_unavailable', { method: name });
+  $('#os-on').checked = o.enabled;
+  $('#os-on').disabled = !o.available && !o.enabled;
+  $('#os-at-start').checked = o.unlock_at_start;
+  $('#os-at-start').disabled = !o.enabled;
+  $('#f-os-enable').hidden = true;
+  const s = await invoke('startup_status');
+  $('#startup-on').checked = s.enabled;
+  $('#startup-state').textContent = s.enabled
+    ? t(s.browser ? 'settings.startup_ready' : 'settings.startup_no_browser')
+    : '';
+}
+const fo = $('#f-os-enable');
+$('#os-on').addEventListener('change', async e => {
+  if (e.target.checked) {
+    // アカウントパスワードを確かめてから有効にする
+    e.target.checked = false;
+    fo.hidden = false;
+    fo.password.focus();
+    return;
+  }
+  await invoke('os_unlock_disable');
+  toast(t('settings.os_disabled'));
+  info = await invoke('app_info');
+  refreshUnlockSettings();
+});
+$('#b-os-cancel').addEventListener('click', () => { clearSecrets(fo); fo.hidden = true; });
+fo.addEventListener('submit', async e => {
+  e.preventDefault();
+  const b = $('button[type=submit]', fo);
+  b.disabled = true;
+  try {
+    await invoke('os_unlock_enable', { password: fo.password.value });
+    toast(t('settings.os_enabled', { method: osName() }));
+  } catch (err) { fail(err); }
+  finally {
+    b.disabled = false;
+    clearSecrets(fo);
+    info = await invoke('app_info');
+    refreshUnlockSettings();
+  }
+});
+$('#os-at-start').addEventListener('change', async e => {
+  try { await invoke('os_unlock_set_at_start', { on: e.target.checked }); }
+  catch (err) { e.target.checked = !e.target.checked; fail(err); }
+});
+$('#startup-on').addEventListener('change', async e => {
+  const on = e.target.checked;
+  e.target.disabled = true;
+  try {
+    const browsers = await invoke('startup_set', { on });
+    toast(t(on ? 'settings.startup_enabled' : 'settings.startup_disabled'));
+    if (browsers.length) toast(t('settings.browser_connected_toast', { browsers: I18N.list(browsers) }));
+  } catch (err) { e.target.checked = !on; fail(err); }
+  finally { e.target.disabled = false; refreshUnlockSettings(); refreshBrowser(); }
+});
 $('#b-settings').addEventListener('click', openSettings);
 $('#b-settings-close').addEventListener('click', () => $('#d-settings').close());
 
@@ -453,8 +636,10 @@ const fp = $('#f-passwd');
 fp.addEventListener('submit', async e => {
   e.preventDefault();
   try {
-    await invoke('change_password', { current: fp.current.value, password: fp.password.value, password2: fp.password2.value });
+    const notices = await invoke('change_password', { current: fp.current.value, password: fp.password.value, password2: fp.password2.value });
     toast(t('settings.passwd_done'));
+    notices.forEach(n => toast(tr(n), true));
+    refreshUnlockSettings();
   } catch (err) { fail(err); }
   finally { clearSecrets(fp); }
 });

@@ -1,9 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["crates/vault-core", "crates/vault-client", "crates/vault-cli", "app/src-tauri"]
+members = ["crates/vault-core", "crates/vault-client", "crates/vault-cli", "crates/vault-os-auth", "app/src-tauri"]
 
 [workspace.package]
-version = "0.6.0"
+version = "0.7.0"
 edition = "2024"
 license = "Apache-2.0"
 rust-version = "1.90"

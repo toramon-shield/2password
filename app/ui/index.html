@@ -102,6 +102,7 @@
     <input type="password" name="password" data-i18n-placeholder="common.account_password" required autofocus autocomplete="current-password">
     <p class="error" role="alert"></p>
     <button class="primary" type="submit" data-i18n="lock.submit"></button>
+    <button class="secondary os-unlock-btn" type="button" id="b-os-unlock" hidden></button>
     <select class="lang-select lock-lang" data-i18n-aria-label="settings.language"></select>
   </form>
 </section>
@@ -111,6 +112,10 @@
   <header class="topbar">
     <div class="brand"><span class="logo">2P</span><span>2password</span></div>
     <input type="search" id="q" data-i18n-placeholder="main.search">
+    <div class="seg" role="group" data-i18n-aria-label="main.filter">
+      <button type="button" class="on" data-filter="all" data-i18n="main.filter_all"></button>
+      <button type="button" data-filter="passkey" data-i18n="main.filter_passkey"></button>
+    </div>
     <button class="primary" id="b-add" data-i18n="main.add"></button>
     <button class="icon" id="b-sync" data-i18n-title="main.sync" data-i18n-aria-label="main.sync">⟳</button>
     <button class="icon" id="b-settings" data-i18n-title="settings.title" data-i18n-aria-label="settings.title">⚙</button>
@@ -208,6 +213,22 @@
       <button class="secondary" type="submit" data-i18n="settings.passwd_submit"></button>
     </form>
     <p class="muted small" data-i18n="settings.passwd_note"></p>
+
+    <h3 data-i18n="settings.unlock"></h3>
+    <p class="muted small" id="os-note"></p>
+    <label class="check"><input type="checkbox" id="os-on"> <span id="os-on-label"></span></label>
+    <form id="f-os-enable" class="row wrap" autocomplete="off" hidden>
+      <input type="password" name="password" data-i18n-placeholder="settings.os_password" autocomplete="current-password" required>
+      <button class="primary" type="submit" data-i18n="settings.os_enable"></button>
+      <button class="secondary" type="button" id="b-os-cancel" data-i18n="btn.cancel"></button>
+    </form>
+    <label class="check"><input type="checkbox" id="os-at-start"> <span id="os-at-start-label"></span></label>
+    <p class="muted small" data-i18n="settings.os_security"></p>
+
+    <h3 data-i18n="settings.startup"></h3>
+    <label class="check"><input type="checkbox" id="startup-on"> <span data-i18n="settings.startup_on"></span></label>
+    <p class="muted small" data-i18n="settings.startup_note"></p>
+    <p class="small" id="startup-state"></p>
 
     <h3 data-i18n="settings.browser"></h3>
     <p class="muted small" data-i18n="settings.browser_note"></p>

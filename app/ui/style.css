@@ -124,3 +124,16 @@ code { font-family: var(--mono); }
 .brand .lang-select { margin-inline-start: auto; font-weight: 400; }
 .lock-lang { margin-top: 16px; }
 .settings > .lang-select { min-width: 220px; }
+
+/* 一覧の絞り込み（すべて／パスキー） */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; flex: none; }
+.seg button { border: 0; border-radius: 0; background: var(--panel2); color: var(--mute); padding: 7px 12px; font-size: 13px; }
+.seg button.on { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+/* パスキーの一覧 */
+.pk-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+.pk-table th { text-align: start; color: var(--mute); font-weight: 600; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.pk-table td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; word-break: break-all; }
+.pk-table td.act { white-space: nowrap; text-align: end; }
+.pk-table td.act button { padding: 4px 10px; font-size: 13px; margin-inline-start: 4px; }
+.pk-table a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+.os-unlock-btn { width: 100%; margin-top: 10px; padding: 11px; }

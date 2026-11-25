@@ -777,6 +777,14 @@ impl Session {
         Ok(())
     }
 
+    /// アカウントパスワードが正しいかを確かめる（Windows Hello / Touch ID を有効にするときなど）。
+    pub fn verify_password(&self, pw: &SecretString) -> R<()> {
+        self.account
+            .unlock_at_least(pw, &self.sk, self.cfg.known_account_epoch)
+            .map(|_| ())
+            .map_err(|_| "現在のアカウントパスワードが違います".into())
+    }
+
     /// パスワード変更：Vault Key を包み直すだけ（保管庫本体はそのまま）。
     /// 解除したまま席を離れた隙に変更されないよう、現在のパスワードを確かめてから行う。
     pub fn change_password(&mut self, current: &SecretString, new_pw: &SecretString) -> R<()> {
@@ -978,6 +986,7 @@ pub fn join_account(
 
 /// この端末から設定とキーチェーンの Secret Key を消す（保管場所のデータは残る）。
 pub fn forget() -> R<()> {
+    crate::os_unlock::disable();
     if let Ok(cfg) = Config::load() {
         config::keychain_delete(&cfg.aid)?;
     }

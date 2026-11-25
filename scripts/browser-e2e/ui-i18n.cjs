@@ -38,11 +38,16 @@ function mockTauri(configured) {
   const item = {
     id: 'i1', title: 'Example', username: 'alice', urls: ['https://example.com'], notes: 'memo',
     updated: '2026-11-15 10:00 UTC', password_len: 12, has_totp: true,
-    passkey: { rp_id: 'example.com', user_name: 'alice', created: '2026-11-15 10:00 UTC' },
+    passkey: { rp_id: 'example.com', user_name: 'alice', user_display_name: 'Alice', created: '2026-11-15 10:00 UTC', credential_short: 'Q2hhbGxlbmdl' },
   };
   const answers = {
-    app_info: { configured, unlocked: configured, backend: 'drive', location: 'Google Drive', oauth_ready: true, detected_drive_folder: null, version: '0.5.0' },
-    list_items: [{ id: 'i1', title: 'Example', username: 'alice', urls: ['https://example.com'], updated: '', has_passkey: true }],
+    app_info: { configured, unlocked: configured, backend: 'drive', location: 'Google Drive', oauth_ready: true, detected_drive_folder: null, version: '0.7.0', os_unlock: true, os_method: 'windows-hello' },
+    list_items: [
+      { id: 'i1', title: 'Example', username: 'alice', urls: ['https://example.com'], updated: '', has_passkey: true, passkey: item.passkey },
+      { id: 'i2', title: 'Mail', username: 'bob', urls: ['https://mail.example.org'], updated: '', has_passkey: false, passkey: null },
+    ],
+    os_unlock_status: { method: 'windows-hello', available: true, enabled: true, unlock_at_start: true },
+    startup_status: { enabled: true, browser: false },
     get_item: item,
     totp_code: { code: '123456', remaining: 17, period: 30 },
     status: { home: 'C:/x', backend: 'drive', location: 'Google Drive', aid: 'AB0123', known_counter: 7, files: [['account.2pw', 900], ['vault.2pw', null]], sample_hex: 'a1b2', oauth_ready: true },
@@ -103,6 +108,7 @@ function mockTauri(configured) {
         await page.evaluate(() => document.querySelector('#b-settings').click());
         await page.waitForFunction(() => document.querySelectorAll('#st-kv dt').length > 3);
         await page.evaluate(() => document.querySelectorAll('details').forEach(d => (d.open = true)));
+        await page.waitForFunction(() => document.querySelector('#os-on-label').textContent.length > 0);
       } else {
         await page.click('[data-go=create]');
       }
@@ -142,10 +148,27 @@ function mockTauri(configured) {
         check(`${where}: Rust のエラーが訳され、差し込んだ値が残る`, toast.includes('network down') && (lang === 'ja' || !JA.test(toast)), toast);
         check(`${where}: Rust の通知が訳され、件数が残る`, seen.notice.includes('3') && (lang === 'ja' || !JA.test(seen.notice)), seen.notice);
       }
-      if (SHOTS && configured) {
-        await page.screenshot({ path: path.join(SHOTS, `${lang}-settings.png`) });
+      if (configured) {
+        if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${lang}-settings.png`), fullPage: true });
         await page.evaluate(() => document.querySelector('#d-settings').close());
-        await page.screenshot({ path: path.join(SHOTS, `${lang}-main.png`) });
+        if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${lang}-main.png`) });
+        // パスキーの一覧
+        await page.click('[data-filter=passkey]');
+        await page.waitForSelector('.pk-table');
+        const pk = await page.evaluate(() => ({
+          rows: document.querySelectorAll('.pk-table tr').length,
+          list: document.querySelectorAll('#list button').length,
+          text: document.querySelector('#detail').innerText,
+        }));
+        check(`${where}: パスキーの一覧に、パスキーのある項目だけが出る`, pk.rows === 2 && pk.list === 1, JSON.stringify(pk));
+        check(`${where}: パスキーの一覧が訳されている`, !/passkeys\.|field\./.test(pk.text) && (lang === 'ja' || !JA.test(pk.text)), pk.text);
+        if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${lang}-passkeys.png`) });
+        // ロック画面（Windows Hello で解除のボタン）
+        await page.click('#b-lock');
+        await page.waitForFunction(() => !document.querySelector('#v-lock').hidden);
+        const os = await page.evaluate(() => { const b = document.querySelector('#b-os-unlock'); return { hidden: b.hidden, text: b.textContent }; });
+        check(`${where}: ロック画面に Windows Hello のボタンが出る`, !os.hidden && os.text.includes('Windows Hello') && !os.text.includes('{'), JSON.stringify(os));
+        if (SHOTS) await page.screenshot({ path: path.join(SHOTS, `${lang}-lock.png`) });
       }
       await page.close();
     }

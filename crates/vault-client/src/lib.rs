@@ -7,6 +7,8 @@
 //! - `kit`     ：Emergency Kit
 //! - `bridge`  ：ブラウザ拡張との連絡路（Native Messaging）
 //! - `import`  ：他のツールが書き出した CSV の取り込み
+//! - `os_unlock`：Windows Hello / Touch ID での解除
+//! - `startup` ：PC へのログイン時の自動起動
 //!
 //! 画面への表示は行わない。注意メッセージは `Session::notices` などで呼び出し側に返す。
 #![forbid(unsafe_code)]
@@ -18,8 +20,10 @@ pub mod i18n;
 pub mod import;
 pub mod kit;
 pub mod links;
+pub mod os_unlock;
 pub mod passkey;
 pub mod session;
+pub mod startup;
 pub mod store;
 pub mod totp;
 

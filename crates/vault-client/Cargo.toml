@@ -9,6 +9,7 @@ build = "build.rs"
 
 [dependencies]
 vault-core = { path = "../vault-core" }
+vault-os-auth = { path = "../vault-os-auth" }
 serde.workspace = true
 serde_json.workspace = true
 secrecy.workspace = true
