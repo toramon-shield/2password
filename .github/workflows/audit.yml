@@ -1,0 +1,28 @@
+# 依存クレートに、報告済みの脆弱性（RustSec）がないかを調べる。
+# main への push のたびと、週に 1 回（新しく報告された脆弱性を拾うため）。
+name: audit
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ["**/Cargo.toml", "Cargo.lock", ".github/workflows/audit.yml"]
+  schedule:
+    - cron: "17 21 * * 0" # 月曜 6:17（日本時間）
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: cargo-audit を入れる
+        run: cargo install cargo-audit --locked
+
+      - name: 脆弱性を調べる
+        run: cargo audit

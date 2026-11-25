@@ -64,7 +64,7 @@
 
 > [!NOTE]
 > 有料の電子署名をしていないため、初回起動時に OS が警告を出します。上の手順で開けます。
-> ダウンロードしたファイルが本物かどうかは、[リリースページ](https://github.com/toramon-shield/2password/releases/latest) の `SHA256SUMS.txt` で確かめられます。
+> ダウンロードしたファイルが本物かどうかは、[リリースページ](https://github.com/toramon-shield/2password/releases/latest) の `SHA256SUMS.txt` と、[ビルドの来歴の証明](SECURITY.md#ダウンロードしたファイルを確かめる)で確かめられます。
 
 ### ステップ 3：最初の設定をする
 

@@ -7,6 +7,9 @@
 #
 # Google Drive 版を配布する場合は、リポジトリの Settings → Secrets and variables → Actions に
 # OAUTH_CLIENT_JSON（Google Cloud の「デスクトップ アプリ」の JSON の中身）を登録すると、アプリに埋め込まれる。
+#
+# 外部のアクションは、タグではなくコミットの SHA で固定している（タグは後から付け替えられるため）。
+# 上げるときは、新しい版の SHA を確かめてから、SHA とコメントの版をいっしょに書き換える。
 name: build-installers
 
 on:
@@ -33,14 +36,17 @@ jobs:
             path: target/universal-apple-darwin/release/bundle/dmg/*.dmg
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@df2a88e9fe4098bad09cb42c3dec7187f15861fc # master (2026-11-26)
         with:
+          toolchain: stable
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
 
@@ -58,38 +64,56 @@ jobs:
           fi
 
       - name: 暗号コアのテスト
-        run: cargo test -p vault-core --release
+        run: cargo test -p vault-core --release --locked
 
+      # --locked：Cargo.lock に書かれた版だけを使う（依存クレートが黙って入れ替わらないように）
       - name: インストーラーをビルド
         working-directory: app
-        run: npx --yes @tauri-apps/cli@2.12.4 build ${{ matrix.args }}
+        run: npx --yes @tauri-apps/cli@2.12.4 build ${{ matrix.args }} -- --locked
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.path }}
           if-no-files-found: error
 
   # タグを push したときだけ、インストーラーを添付した Release を作る。
+  # environment: release には、GitHub の設定で「承認が必要」「v* のタグだけ」を付けてある。
+  # push できる鍵を盗まれてタグを打たれても、リポジトリの持ち主が承認するまで Release は出ない。
   # ファイル名を固定しているので、README の releases/latest/download/... のリンクが常に最新版を指す。
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           path: dist
+
+      - name: ファイル名をそろえる
+        run: |
+          mv dist/2password-windows-installer/*.exe 2password-windows-x64-setup.exe
+          mv dist/2password-macos-dmg/*.dmg 2password-macos-universal.dmg
+          sha256sum 2password-windows-x64-setup.exe 2password-macos-universal.dmg > SHA256SUMS.txt
+
+      # 「このリポジトリの、このコミットから、このワークフローで作った」ことの証明を付ける。
+      # 確かめ方：gh attestation verify <ファイル> --repo toramon-shield/2password
+      - name: ビルドの来歴の証明を付ける
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            2password-windows-x64-setup.exe
+            2password-macos-universal.dmg
 
       - name: Release を作る
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mv dist/2password-windows-installer/*.exe 2password-windows-x64-setup.exe
-          mv dist/2password-macos-dmg/*.dmg 2password-macos-universal.dmg
-          sha256sum 2password-windows-x64-setup.exe 2password-macos-universal.dmg > SHA256SUMS.txt
           cat > notes.md <<NOTES
           ## ダウンロード
 
@@ -103,5 +127,6 @@ jobs:
           - 有料の電子署名をしていないため、初回起動時に OS が警告を出します。
           - 2password は学習・検証用のプロジェクトで、第三者によるセキュリティ監査を受けていません。
           - \`SHA256SUMS.txt\` で、ダウンロードしたファイルのハッシュ値を確かめられます。
+          - \`gh attestation verify <ファイル> --repo $GITHUB_REPOSITORY\` で、このリポジトリの GitHub Actions が作ったファイルかどうかを確かめられます（[SECURITY.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/SECURITY.md)）。
           NOTES
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --title "2password $GITHUB_REF_NAME" --notes-file notes.md --verify-tag 2password-windows-x64-setup.exe 2password-macos-universal.dmg SHA256SUMS.txt
